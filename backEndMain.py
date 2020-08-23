@@ -192,11 +192,13 @@ def pullVideos():
     else:
         startPullDate = "2020-08-13T00:00:00Z"
 
+    endDate = (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ")
+
     for creator in allCreatorsList:
-        getLatestVideos_APICall_(creator.creatorID, startPullDate, (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"))
+        getLatestVideos_APICall_(creator.creatorID, startPullDate, endDate)
 
     fileDate = open("saveDate.txt", "w")
-    fileDate.write(startPullDate)
+    fileDate.write(endDate)
     fileDate.close()
 
     videosList = list(dict.fromkeys(allVideosList))
@@ -215,5 +217,5 @@ if __name__ == "__main__":
     #addCreator("SSoHPKC")
     load()
     save()
-    #pullVideos()
-    #save()
+    pullVideos()
+    save()
