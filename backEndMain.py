@@ -19,10 +19,10 @@ allVideosList = []
 
 class Creator:
     def __init__(self, userName: str, creatorID: str, videoCounter: int, dateAdded: str):
-        self.userName = userName
-        self.creatorID = creatorID
+        self.userName = userName.strip()
+        self.creatorID = creatorID.strip()
         self.videoCounter = videoCounter
-        self.dateAdded = dateAdded
+        self.dateAdded = dateAdded.strip()
         allCreatorsList.append(self)
 
         print(userName, " ", creatorID, " ", videoCounter, " ", dateAdded)
@@ -30,12 +30,12 @@ class Creator:
 
 class Video:
     def __init__(self, userName: str, title: str, videoID: str, imageURL: str, dateUploaded: str):
-        self.userName = userName
-        self.title = title
-        self.videoID = videoID
-        self.videoURL = "https://www.youtube.com/watch?v=" + videoID
-        self.imageURL = imageURL
-        self.dateUploaded = dateUploaded
+        self.userName = userName.strip()
+        self.title = title.strip()
+        self.videoID = videoID.strip()
+        self.videoURL = "https://www.youtube.com/watch?v=" + videoID.strip()
+        self.imageURL = imageURL.strip()
+        self.dateUploaded = dateUploaded.strip()
         allVideosList.append(self)
 
         print(userName, " ", title, " ", videoID, " ", imageURL, " ", dateUploaded, "\n")
@@ -43,7 +43,7 @@ class Video:
 
 def addToVideoCounter(userName: str):
     for creator in allCreatorsList:
-        if creator.userName is userName:
+        if creator.userName == userName.strip():
             creator.videoCounter += 1
 
 
@@ -125,7 +125,7 @@ def addCreator(name: str):
             flag = True
 
     if flag is False:
-        Creator(name, getID_APICall_(name), 0, (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%S"))
+        Creator(name, getID_APICall_(name), 0, (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"))
 
 
 def save():
@@ -138,6 +138,8 @@ def save():
     fileCreators = open("saveCreators.txt", "a")
     fileVideos = open("saveVideos.txt", "a")
 
+    fixVideoCounter()
+
     for creator in allCreatorsList:
         strCreator = creator.userName + DEV_ITEM_SPLIT + creator.creatorID + DEV_ITEM_SPLIT + str(creator.videoCounter) + DEV_ITEM_SPLIT + creator.dateAdded + DEV_OBJ_SPLIT
         fileCreators.write(strCreator)
@@ -145,6 +147,9 @@ def save():
     for video in allVideosList:
         strVideo = video.userName + DEV_ITEM_SPLIT + video.title + DEV_ITEM_SPLIT + video.videoID + DEV_ITEM_SPLIT + video.imageURL + DEV_ITEM_SPLIT + video.dateUploaded + DEV_OBJ_SPLIT
         fileVideos.write(strVideo)
+
+    fileCreators.close()
+    fileVideos.close()
 
 
 def load():
@@ -169,11 +174,46 @@ def load():
                 listVideoItem = video.split(DEV_ITEM_SPLIT)
                 Video(listVideoItem[0], listVideoItem[1], listVideoItem[2], listVideoItem[3], listVideoItem[4])
 
+    fixVideoCounter()
+
+
+def fixVideoCounter():
+    for creator in allCreatorsList:
+        creator.videoCounter = 0
+
+    for video in allVideosList:
+        addToVideoCounter(video.userName)
+
+
+def pullVideos():
+
+    if os.path.exists("saveDate.txt"):
+        startPullDate = open("saveDate.txt", "r").read()
+    else:
+        startPullDate = "2020-08-13T00:00:00Z"
+
+    for creator in allCreatorsList:
+        getLatestVideos_APICall_(creator.creatorID, startPullDate, (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"))
+
+    fileDate = open("saveDate.txt", "w")
+    fileDate.write(startPullDate)
+    fileDate.close()
+
+    videosList = list(dict.fromkeys(allVideosList))
+    allVideosList.clear()
+
+    for video in videosList:
+        allVideosList.append(video)
+
+    fixVideoCounter()
+
 
 if __name__ == "__main__":
     print("Doing nothing to help prevent accidental API calls.")
     # --- Sample API calls that return data ---
-    #getLatestVideos_APICall_("UCVdtW2E4vwvf8yh4FY5us9A", "2020-08-13T00:00:00Z", "2020-12-12T00:00:00Z")
+    #getLatestVideos_APICall_("UCVdtW2E4vwvf8yh4FY5us9A", "2020-08-13T00:00:00Z", "2020-08-19T00:00:00Z")
     #addCreator("SSoHPKC")
-    #save()
     load()
+    save()
+    #pullVideos()
+    #save()
