@@ -11,37 +11,39 @@ import googleapiclient.discovery
 
 # --- Global Values ---
 DEVELOPER_KEY = "***REMOVED***"
+DEV_ITEM_SPLIT = "<!--Comma---,---Comma--!>"
+DEV_OBJ_SPLIT = "<!--Semicolon---;---Semicolon--!>"
 allCreatorsList = []
-allVideos = []
+allVideosList = []
 
 
-class NewCreator:
-    def __init__(self, userName: str, ID: str, videoCounter: int, dateAdded: str):
+class Creator:
+    def __init__(self, userName: str, creatorID: str, videoCounter: int, dateAdded: str):
         self.userName = userName
-        self.ID = ID
+        self.creatorID = creatorID
         self.videoCounter = videoCounter
         self.dateAdded = dateAdded
         allCreatorsList.append(self)
 
-        #print(userName, " ", ID, " ", videoCounter, " ", dateAdded)
+        print(userName, " ", creatorID, " ", videoCounter, " ", dateAdded)
 
 
-class NewVideo:
+class Video:
     def __init__(self, userName: str, title: str, videoID: str, imageURL: str, dateUploaded: str):
         self.userName = userName
         self.title = title
+        self.videoID = videoID
         self.videoURL = "https://www.youtube.com/watch?v=" + videoID
         self.imageURL = imageURL
         self.dateUploaded = dateUploaded
-        addToVideoCounter(userName)
-        allVideos.append(self)
+        allVideosList.append(self)
 
-        #print(userName, " ", title, " ", self.videoURL, " ", imageURL, " ", dateUploaded, "\n")
+        print(userName, " ", title, " ", videoID, " ", imageURL, " ", dateUploaded, "\n")
 
 
 def addToVideoCounter(userName: str):
     for creator in allCreatorsList:
-        if creator.userName == userName:
+        if creator.userName is userName:
             creator.videoCounter += 1
 
 
@@ -106,7 +108,8 @@ def getLatestVideos_APICall_(channelID: str, startDate: str, endDate: str):
             imageURL = (((item['snippet'])['thumbnails'])['medium'])['url']
             dateUploaded = (item['snippet'])['publishTime']
 
-            NewVideo(userName, title, videoID, imageURL, dateUploaded)
+            Video(userName, title, videoID, imageURL, dateUploaded)
+            addToVideoCounter(userName)
 
         if "nextPageToken" in response:
             pageToken = response['nextPageToken']
@@ -114,13 +117,63 @@ def getLatestVideos_APICall_(channelID: str, startDate: str, endDate: str):
             pageToken = None
 
 
-def createCreator(name: str):
-    return NewCreator(name, getID_APICall_(name), 0, datetime.date.today())
+def addCreator(name: str):
+    flag = False
+
+    for creator in allCreatorsList:
+        if name is creator.userName:
+            flag = True
+
+    if flag is False:
+        Creator(name, getID_APICall_(name), 0, (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%S"))
+
+
+def save():
+    if os.path.exists("saveCreators.txt"):
+        os.remove("saveCreators.txt")
+
+    if os.path.exists("saveVideos.txt"):
+        os.remove("saveVideos.txt")
+
+    fileCreators = open("saveCreators.txt", "a")
+    fileVideos = open("saveVideos.txt", "a")
+
+    for creator in allCreatorsList:
+        strCreator = creator.userName + DEV_ITEM_SPLIT + creator.creatorID + DEV_ITEM_SPLIT + str(creator.videoCounter) + DEV_ITEM_SPLIT + creator.dateAdded + DEV_OBJ_SPLIT
+        fileCreators.write(strCreator)
+
+    for video in allVideosList:
+        strVideo = video.userName + DEV_ITEM_SPLIT + video.title + DEV_ITEM_SPLIT + video.videoID + DEV_ITEM_SPLIT + video.imageURL + DEV_ITEM_SPLIT + video.dateUploaded + DEV_OBJ_SPLIT
+        fileVideos.write(strVideo)
+
+
+def load():
+    allCreatorsList.clear()
+    allVideosList.clear()
+
+    if os.path.exists("saveCreators.txt"):
+        fileCreators = open("saveCreators.txt", "r").read()
+        listCreators = fileCreators.split(DEV_OBJ_SPLIT)
+
+        for creator in listCreators:
+            if creator is not "":
+                listCreatorItems = creator.split(DEV_ITEM_SPLIT)
+                Creator(listCreatorItems[0], listCreatorItems[1], int(listCreatorItems[2]), listCreatorItems[3])
+
+    if os.path.exists("saveVideos.txt"):
+        fileVideos = open("saveVideos.txt", "r").read()
+        listVideos = fileVideos.split(DEV_OBJ_SPLIT)
+
+        for video in listVideos:
+            if video is not "":
+                listVideoItem = video.split(DEV_ITEM_SPLIT)
+                Video(listVideoItem[0], listVideoItem[1], listVideoItem[2], listVideoItem[3], listVideoItem[4])
 
 
 if __name__ == "__main__":
     print("Doing nothing to help prevent accidental API calls.")
-
     # --- Sample API calls that return data ---
-    # getLatestVideos_APICall_("UCVdtW2E4vwvf8yh4FY5us9A", "2020-08-13T00:00:00Z", "2020-12-12T00:00:00Z")
-    # getID_APICall_("SSoHPKC")
+    #getLatestVideos_APICall_("UCVdtW2E4vwvf8yh4FY5us9A", "2020-08-13T00:00:00Z", "2020-12-12T00:00:00Z")
+    #addCreator("SSoHPKC")
+    #save()
+    load()
