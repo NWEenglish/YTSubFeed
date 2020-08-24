@@ -7,10 +7,11 @@
 import os
 import datetime
 import googleapiclient.discovery
+import config
 
 
 # --- Global Values ---
-DEVELOPER_KEY = "***REMOVED***"
+DEVELOPER_KEY = config.DEV_API_KEY["KEY"]
 DEV_ITEM_SPLIT = "<!--Comma---,---Comma--!>"
 DEV_OBJ_SPLIT = "<!--Semicolon---;---Semicolon--!>"
 allCreatorsList = []
@@ -19,7 +20,7 @@ allVideosList = []
 
 class Creator:
     def __init__(self, userName: str, creatorID: str, videoCounter: int, dateAdded: str):
-        self.userName = userName.strip()
+        self.userName = userName
         self.creatorID = creatorID.strip()
         self.videoCounter = videoCounter
         self.dateAdded = dateAdded.strip()
@@ -30,8 +31,8 @@ class Creator:
 
 class Video:
     def __init__(self, userName: str, title: str, videoID: str, imageURL: str, dateUploaded: str):
-        self.userName = userName.strip()
-        self.title = title.strip()
+        self.userName = userName
+        self.title = title
         self.videoID = videoID.strip()
         self.videoURL = "https://www.youtube.com/watch?v=" + videoID.strip()
         self.imageURL = imageURL.strip()
