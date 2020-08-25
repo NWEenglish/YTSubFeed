@@ -8,6 +8,7 @@ import os
 import datetime
 import googleapiclient.discovery
 import config
+import typing
 
 
 # --- Global Values ---
@@ -42,9 +43,21 @@ class Video:
         print(userName, " ", title, " ", videoID, " ", imageURL, " ", dateUploaded, "\n")
 
 
+def deleteCreator(creatorList: typing.List[Creator]):
+    for creator in creatorList:
+        allCreatorsList.remove(creator)
+
+
+def deleteVideo(videoList: typing.List[Video]):
+    for video in videoList:
+        allVideosList.remove(video)
+
+    fixVideoCounter()
+
+
 def addToVideoCounter(userName: str):
     for creator in allCreatorsList:
-        if creator.userName == userName.strip():
+        if creator.userName.strip() == userName.strip():
             creator.videoCounter += 1
 
 
