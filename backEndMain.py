@@ -169,6 +169,8 @@ def save():
 
     if len(lastPullDate) != 0:
         fileDate.write(lastPullDate[0])
+    else:
+        fileDate.write("")
 
     fileCreators.close()
     fileVideos.close()
@@ -200,6 +202,8 @@ def load():
     lastPullDate.clear()
     if os.path.exists("saveDate.txt"):
         lastPullDate.append(open("saveDate.txt", "r").read())
+        if lastPullDate[0] == "":
+            lastPullDate[0] = "2020-08-13T00:00:00Z"
     else:
         lastPullDate.append("2020-08-13T00:00:00Z")
 
@@ -238,5 +242,5 @@ if __name__ == "__main__":
     #addCreator("SSoHPKC")
     load()
     save()
-    pullVideos()
-    save()
+    #pullVideos()
+    #save()
