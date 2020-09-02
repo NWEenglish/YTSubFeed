@@ -17,6 +17,7 @@ DEV_ITEM_SPLIT = "<!--Comma---,---Comma--!>"
 DEV_OBJ_SPLIT = "<!--Semicolon---;---Semicolon--!>"
 allCreatorsList = []
 allVideosList = []
+lastPullDate = []
 
 
 class Creator:
@@ -149,8 +150,12 @@ def save():
     if os.path.exists("saveVideos.txt"):
         os.remove("saveVideos.txt")
 
+    if os.path.exists("saveDate.txt"):
+        os.remove("saveDate.txt")
+
     fileCreators = open("saveCreators.txt", "a")
     fileVideos = open("saveVideos.txt", "a")
+    fileDate = open("saveDate.txt", "a")
 
     fixVideoCounter()
 
@@ -162,8 +167,12 @@ def save():
         strVideo = video.userName + DEV_ITEM_SPLIT + video.title + DEV_ITEM_SPLIT + video.videoID + DEV_ITEM_SPLIT + video.imageURL + DEV_ITEM_SPLIT + video.dateUploaded + DEV_OBJ_SPLIT
         fileVideos.write(strVideo)
 
+    if len(lastPullDate) != 0:
+        fileDate.write(lastPullDate[0])
+
     fileCreators.close()
     fileVideos.close()
+    fileDate.close()
 
 
 def load():
@@ -188,6 +197,12 @@ def load():
                 listVideoItem = video.split(DEV_ITEM_SPLIT)
                 Video(listVideoItem[0], listVideoItem[1], listVideoItem[2], listVideoItem[3], listVideoItem[4])
 
+    lastPullDate.clear()
+    if os.path.exists("saveDate.txt"):
+        lastPullDate.append(open("saveDate.txt", "r").read())
+    else:
+        lastPullDate.append("2020-08-13T00:00:00Z")
+
     fixVideoCounter()
 
 
@@ -201,19 +216,13 @@ def fixVideoCounter():
 
 def pullVideos():
 
-    if os.path.exists("saveDate.txt"):
-        startPullDate = open("saveDate.txt", "r").read()
-    else:
-        startPullDate = "2020-08-13T00:00:00Z"
-
-    endDate = (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ")
+    startPullDate = lastPullDate[0]
+    endPullDate = (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     for creator in allCreatorsList:
-        getLatestVideos_APICall_(creator.creatorID, startPullDate, endDate)
+        getLatestVideos_APICall_(creator.creatorID, startPullDate, endPullDate)
 
-    fileDate = open("saveDate.txt", "w")
-    fileDate.write(endDate)
-    fileDate.close()
+    lastPullDate[0] = endPullDate
 
     videosList = list(dict.fromkeys(allVideosList))
     allVideosList.clear()
@@ -226,10 +235,8 @@ def pullVideos():
 
 if __name__ == "__main__":
     print("Doing nothing to help prevent accidental API calls.")
-    # --- Sample API calls that return data ---
-    #getLatestVideos_APICall_("UCVdtW2E4vwvf8yh4FY5us9A", "2020-08-13T00:00:00Z", "2020-08-19T00:00:00Z")
     #addCreator("SSoHPKC")
     load()
     save()
-    #pullVideos()
-    #save()
+    pullVideos()
+    save()
