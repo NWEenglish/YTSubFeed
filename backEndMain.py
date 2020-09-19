@@ -34,7 +34,7 @@ class Creator:
 class Video:
     def __init__(self, userName: str, title: str, videoID: str, imageURL: str, dateUploaded: str):
         self.userName = userName
-        self.title = title
+        self.title = title.replace("&#39;", "\'")
         self.videoID = videoID.strip()
         self.videoURL = "https://www.youtube.com/watch?v=" + videoID.strip()
         self.imageURL = imageURL.strip()
@@ -259,6 +259,12 @@ def sortVideoByTitle():
 
 def sortVideoByDate():
     allVideosList.sort(key=lambda video: video.dateUploaded)
+
+
+def resetToDefault():
+    allCreatorsList.clear()
+    allVideosList.clear()
+    lastPullDate[0] = ""
 
 
 if __name__ == "__main__":
