@@ -1,5 +1,8 @@
+#https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter
 import tkinter
 from tkinter import Menu
+
+#def openCreator():
 
 gui = tkinter.Tk()
 gui.title("YouTube Sub Feeder")
