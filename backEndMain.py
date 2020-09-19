@@ -237,10 +237,35 @@ def pullVideos():
     fixVideoCounter()
 
 
+def sortCreatorByName():
+    allCreatorsList.sort(key=lambda creator: creator.userName)
+
+
+def sortCreatorByVideos():
+    allCreatorsList.sort(key=lambda creator: creator.videoCounter)
+
+
+def sortCreatorByDate():
+    allCreatorsList.sort(key=lambda creator: creator.dateAdded)
+
+
+def sortVideoByCreator():
+    allVideosList.sort(key=lambda video: video.userName)
+
+
+def sortVideoByTitle():
+    allVideosList.sort(key=lambda video: video.title)
+
+
+def sortVideoByDate():
+    allVideosList.sort(key=lambda video: video.dateUploaded)
+
+
 if __name__ == "__main__":
     print("Doing nothing to help prevent accidental API calls.")
     #addCreator("SSoHPKC")
     load()
-    save()
-    #pullVideos()
     #save()
+    #pullVideos()
+    sortVideoByDate()
+    save()
