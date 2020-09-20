@@ -17,7 +17,7 @@ DEV_ITEM_SPLIT = "<!--Comma---,---Comma--!>"
 DEV_OBJ_SPLIT = "<!--Semicolon---;---Semicolon--!>"
 allCreatorsList = []
 allVideosList = []
-lastPullDate = []
+lastPullDate = [""]
 
 
 class Creator:
@@ -28,7 +28,7 @@ class Creator:
         self.dateAdded = dateAdded.strip()
         allCreatorsList.append(self)
 
-        print(userName, " ", creatorID, " ", videoCounter, " ", dateAdded)
+        #print(userName, " ", creatorID, " ", videoCounter, " ", dateAdded)
 
 
 class Video:
@@ -41,7 +41,7 @@ class Video:
         self.dateUploaded = dateUploaded.strip()
         allVideosList.append(self)
 
-        print(userName, " ", title, " ", videoID, " ", imageURL, " ", dateUploaded, "\n")
+        #print(userName, " ", title, " ", videoID, " ", imageURL, " ", dateUploaded, "\n")
 
 
 def deleteCreator(creatorList: typing.List[Creator]):
