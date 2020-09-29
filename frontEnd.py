@@ -9,7 +9,7 @@ class frontEnd(tkinter.Tk):
         #Frames are stacked on top of each other with the visible
         #one placed on top.
         container = tkinter.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
+        container.pack(side="top", fill="both")
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         
@@ -27,6 +27,8 @@ class frontEnd(tkinter.Tk):
     def showFrame(self, pageName):
         frame = self.frames[pageName]
         frame.tkraise()
+        menubar = frame.menubar(self)
+        self.configure(menu=menubar)
 
 #Home page for the application        
 class homePage(tkinter.Frame):
@@ -34,16 +36,17 @@ class homePage(tkinter.Frame):
         tkinter.Frame.__init__(self, parent)
         self.controller = controller
         
-        menubar = Menu(self)
+    def menubar(self, root):
+        menubar = tkinter.Menu(root)
         
         #Settings options
         settingsMenu = Menu(menubar, tearoff=0)
         settingsMenu.add_command(label="Add/Remove Creator",
-                                 command=lambda:controller.showFrame("creatorPage"))
+                             command=lambda:self.controller.showFrame("creatorPage"))
         settingsMenu.add_command(label="Reset Default")
         settingsMenu.add_command(label="Retrieve Last 10 Videos")
         menubar.add_cascade(label="Settings", menu=settingsMenu)
-        
+
         #Pull videos button
         menubar.add_command(label="Pull Videos")
         
@@ -57,8 +60,8 @@ class homePage(tkinter.Frame):
         sortMenu.add_command(label="Date")
         sortMenu.add_command(label="Video Count")
         menubar.add_cascade(label="Sort By", menu=sortMenu)
-        
-#        menubar.pack()
+            
+        return menubar
 
 #Add / Remove creator page for the application
 class creatorPage(tkinter.Frame):
@@ -66,11 +69,12 @@ class creatorPage(tkinter.Frame):
         tkinter.Frame.__init__(self, parent)
         self.controller = controller
         
+    def menubar(self, root):
         menubar = Menu(self)
         
         #Back to home button
         menubar.add_command(label="Home Screen", command=lambda:
-            controller.showFrame("homePage"))
+            self.controller.showFrame("homePage"))
         
         #Save changes button
         menubar.add_command(label="Save Changes")
@@ -81,9 +85,11 @@ class creatorPage(tkinter.Frame):
         sortMenu.add_command(label="Video Count")
         sortMenu.add_command(label="Date Added")
         menubar.add_cascade(label="Sort By", menu=sortMenu)
-        
-#        menubar.pack()
+            
+        return menubar
 
 if __name__ == "__main__":
     app = frontEnd()
+    app.title("YouTube SubFeed")
+    app.geometry("400x250")
     app.mainloop()
