@@ -39,19 +39,19 @@ class homePage(tkinter.Frame):
     def menubar(self, root):
         menubar = tkinter.Menu(root)
         
+        #Options menu
+        optionsMenu = Menu(menubar, tearoff=0)
+        optionsMenu.add_command(label="Save")
+        optionsMenu.add_command(label="Pull Videos")
+        optionsMenu.add_command(label="Delete Selected")
+        menubar.add_cascade(label="Options", menu=optionsMenu)
+        
         #Settings options
         settingsMenu = Menu(menubar, tearoff=0)
         settingsMenu.add_command(label="Add/Remove Creator",
                              command=lambda:self.controller.showFrame("creatorPage"))
         settingsMenu.add_command(label="Reset Default")
-        settingsMenu.add_command(label="Retrieve Last 10 Videos")
         menubar.add_cascade(label="Settings", menu=settingsMenu)
-
-        #Pull videos button
-        menubar.add_command(label="Pull Videos")
-        
-        #Delete videos button
-        menubar.add_command(label="Delete Selected")
         
         #Sort options
         sortMenu = Menu(menubar, tearoff=0)
