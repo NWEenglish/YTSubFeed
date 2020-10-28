@@ -264,14 +264,14 @@ def sortVideoByDate():
 def resetToDefault():
     allCreatorsList.clear()
     allVideosList.clear()
-    lastPullDate[0] = ""
+    lastPullDate[0] = (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-if __name__ == "__main__":
-    print("Doing nothing to help prevent accidental API calls.")
-    #addCreator("SSoHPKC")
-    load()
-    #save()
-    #pullVideos()
-    sortVideoByDate()
-    save()
+# if __name__ == "__main__":
+#     print("Doing nothing to help prevent accidental API calls.")
+#     #addCreator("SSoHPKC")
+#     load()
+#     #save()
+#     #pullVideos()
+#     sortVideoByDate()
+#     #save()
