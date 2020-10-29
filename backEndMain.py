@@ -9,49 +9,35 @@ import datetime
 import googleapiclient.discovery
 import config
 import typing
+import database
+from CreatorAndVideoObjects import Creator, Video
 
 
 # --- Global Values ---
 DEVELOPER_KEY = config.DEV_API_KEY["KEY"]
-DEV_ITEM_SPLIT = "<!--Comma---,---Comma--!>"
-DEV_OBJ_SPLIT = "<!--Semicolon---;---Semicolon--!>"
+
 allCreatorsList = []
 allVideosList = []
+
 lastPullDate = [""]
 
+deletableCreatorsList = []
+deletableVideosList = []
 
-class Creator:
-    def __init__(self, userName: str, creatorID: str, videoCounter: int, dateAdded: str):
-        self.userName = userName
-        self.creatorID = creatorID.strip()
-        self.videoCounter = videoCounter
-        self.dateAdded = dateAdded.strip()
-        allCreatorsList.append(self)
-
-        #print(userName, " ", creatorID, " ", videoCounter, " ", dateAdded)
-
-
-class Video:
-    def __init__(self, userName: str, title: str, videoID: str, imageURL: str, dateUploaded: str):
-        self.userName = userName
-        self.title = title.replace("&#39;", "\'")
-        self.videoID = videoID.strip()
-        self.videoURL = "https://www.youtube.com/watch?v=" + videoID.strip()
-        self.imageURL = imageURL.strip()
-        self.dateUploaded = dateUploaded.strip()
-        allVideosList.append(self)
-
-        #print(userName, " ", title, " ", videoID, " ", imageURL, " ", dateUploaded, "\n")
+addableCreatorsList = []
+addableVideosList = []
 
 
 def deleteCreator(creatorList: typing.List[Creator]):
     for creator in creatorList:
         allCreatorsList.remove(creator)
+        deletableCreatorsList.append(creator)
 
 
 def deleteVideo(videoList: typing.List[Video]):
     for video in videoList:
         allVideosList.remove(video)
+        deletableVideosList.append(video)
 
     fixVideoCounter()
 
@@ -123,7 +109,10 @@ def getLatestVideos_APICall_(channelID: str, startDate: str, endDate: str):
             imageURL = (((item['snippet'])['thumbnails'])['medium'])['url']
             dateUploaded = (item['snippet'])['publishTime']
 
-            Video(userName, title, videoID, imageURL, dateUploaded)
+            video = Video(userName, title, videoID, imageURL, dateUploaded)
+            allVideosList.append(video)
+            addableVideosList.append(video)
+
             addToVideoCounter(userName)
 
         if "nextPageToken" in response:
@@ -140,72 +129,84 @@ def addCreator(name: str):
             flag = True
 
     if flag is False:
-        Creator(name, getID_APICall_(name), 0, (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"))
+        creator = Creator(name, getID_APICall_(name), 0, (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"))
+        allCreatorsList.append(creator)
+        addableCreatorsList.append(creator)
 
 
 def save():
-    if os.path.exists("saveCreators.txt"):
-        os.remove("saveCreators.txt")
 
-    if os.path.exists("saveVideos.txt"):
-        os.remove("saveVideos.txt")
+    # Ensure DB is created
+    if database.doesDBExist() is not True:
+        database.createDB()
 
-    if os.path.exists("saveDate.txt"):
-        os.remove("saveDate.txt")
+    # Delete items selected to be removed
+    if len(deletableCreatorsList) is not 0:
+        for creator in deletableCreatorsList:
+            allCreatorsList.remove(creator)
+            if creator in addableCreatorsList:
+                addableCreatorsList.remove(creator)
+            else:
+                database.deleteFromCreator(creator.creatorID)
 
-    fileCreators = open("saveCreators.txt", "a")
-    fileVideos = open("saveVideos.txt", "a")
-    fileDate = open("saveDate.txt", "a")
+    if len(deletableVideosList) is not 0:
+        for video in deletableVideosList:
+            allVideosList.remove(video)
+            if video in addableVideosList:
+                addableVideosList.remove(video)
+            else:
+                database.deleteFromVideo(video.videoID)
 
-    fixVideoCounter()
+    deletableCreatorsList.clear()
+    deletableVideosList.clear()
 
-    for creator in allCreatorsList:
-        strCreator = creator.userName + DEV_ITEM_SPLIT + creator.creatorID + DEV_ITEM_SPLIT + str(creator.videoCounter) + DEV_ITEM_SPLIT + creator.dateAdded + DEV_OBJ_SPLIT
-        fileCreators.write(strCreator)
+    # Add all new items
+    if len(addableCreatorsList) is not 0:
+        for creator in addableCreatorsList:
+            database.addCreatorToTable(creator)
 
-    for video in allVideosList:
-        strVideo = video.userName + DEV_ITEM_SPLIT + video.title + DEV_ITEM_SPLIT + video.videoID + DEV_ITEM_SPLIT + video.imageURL + DEV_ITEM_SPLIT + video.dateUploaded + DEV_OBJ_SPLIT
-        fileVideos.write(strVideo)
+    if len(addableVideosList) is not 0:
+        for video in addableVideosList:
+            database.addVideoToTable(video)
 
-    if len(lastPullDate) != 0:
-        fileDate.write(lastPullDate[0])
-    else:
-        fileDate.write("")
+    addableCreatorsList.clear()
+    addableVideosList.clear()
 
-    fileCreators.close()
-    fileVideos.close()
-    fileDate.close()
+    # Update last pull date if applicable
+    if lastPullDate[0] is not database.loadPullDate():
+        database.updatePullDate(lastPullDate[0])
 
 
 def load():
+
+    print (os.getcwd())
+
+    # Ensure DB is created
+    if database.doesDBExist() is not True:
+        database.createDB()
+
+    # Clear out all local lists
     allCreatorsList.clear()
     allVideosList.clear()
+    deletableCreatorsList.clear()
+    deletableVideosList.clear()
+    addableCreatorsList.clear()
+    addableVideosList.clear()
 
-    if os.path.exists("saveCreators.txt"):
-        fileCreators = open("saveCreators.txt", "r").read()
-        listCreators = fileCreators.split(DEV_OBJ_SPLIT)
+    # Load in creators
+    for row in database.loadInCreatorTable():
+        allCreatorsList.append(Creator(row[0], row[1], row[2], row[3]))
 
-        for creator in listCreators:
-            if creator is not "":
-                listCreatorItems = creator.split(DEV_ITEM_SPLIT)
-                Creator(listCreatorItems[0], listCreatorItems[1], int(listCreatorItems[2]), listCreatorItems[3])
+    # Load in videos
+    for row in database.loadInVideoTable():
+        allVideosList.append(Video(row[0], row[1], row[2], row[3], row[4]))
 
-    if os.path.exists("saveVideos.txt"):
-        fileVideos = open("saveVideos.txt", "r").read()
-        listVideos = fileVideos.split(DEV_OBJ_SPLIT)
-
-        for video in listVideos:
-            if video is not "":
-                listVideoItem = video.split(DEV_ITEM_SPLIT)
-                Video(listVideoItem[0], listVideoItem[1], listVideoItem[2], listVideoItem[3], listVideoItem[4])
-
-    lastPullDate.clear()
-    if os.path.exists("saveDate.txt"):
-        lastPullDate.append(open("saveDate.txt", "r").read())
-        if lastPullDate[0] == "":
-            lastPullDate[0] = "2020-08-13T00:00:00Z"
+    # Load in last pull date
+    date = database.loadPullDate()
+    if not date or date is "":
+        lastPullDate[0] = (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ")
     else:
-        lastPullDate.append("2020-08-13T00:00:00Z")
+        lastPullDate[0] = date
 
     fixVideoCounter()
 
@@ -269,9 +270,8 @@ def resetToDefault():
 
 # if __name__ == "__main__":
 #     print("Doing nothing to help prevent accidental API calls.")
-#     #addCreator("SSoHPKC")
-#     load()
-#     #save()
-#     #pullVideos()
+#     addCreator("SSoHPKC")
+#     save()
+#     pullVideos()
 #     sortVideoByDate()
-#     #save()
+#     save()
