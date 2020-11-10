@@ -1,46 +1,51 @@
 import tkinter
-from tkinter import Menu
 from tkinter import scrolledtext
-##import backEndMain
+from tkinter import Menu
 
-
-class frontEnd(tkinter.Tk):
+#################### GUI Setup ####################
+class YouTubeApp(tkinter.Tk):
+    #__init__ function for YouTubeApp
     def __init__(self, *args, **kwargs):
+        #__init__ function for Tk class
         tkinter.Tk.__init__(self, *args, **kwargs)
         
-        # The container holds frames of each screen to be shown.
-        # Frames are stacked on top of each other with the visible
-        # one placed on top.
+        #Create container
         container = tkinter.Frame(self)
-        container.pack(side="top", fill="both")
+        container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         
-        self.frames={}
-        for f in (homePage, creatorPage):
-            pageName = f.__name__
-            frame = f(parent=container, controller=self)
-            self.frames[pageName]=frame
+        #Initialize frames in empty array
+        self.frames = {}
+        
+        #Iterate through frame layouts
+        for F in (homePage, cPage):
+            frame = F(container, self)
+            self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
             
-        self.showFrame("homePage")
-    
-    # Raised the selected page to the top of the container
-    # so that it is visible
-    def showFrame(self, pageName):
-        frame = self.frames[pageName]
+        #Initially show home screen
+        self.showFrame(homePage)
+        
+    #Display desired frame by moving it to the front
+    def showFrame(self, cont):
+        frame = self.frames[cont]
         frame.tkraise()
         menubar = frame.menubar(self)
-        contentList = scrolledtext.ScrolledText(self)
-        contentList.grid(row=0, column=0)
         self.configure(menu=menubar)
 
-
-# Home page for the application
+#################### Home Screen ####################
 class homePage(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent)
         self.controller = controller
+        
+        #################### Text Area ####################
+        textAreaLabel = tkinter.Label(self, text="Videos", font = ('-weighted bold', 10))
+        textAreaLabel.grid(column=0, row=0, pady=10, padx=10, sticky='W')
+
+        textArea = tkinter.scrolledtext.ScrolledText(self, width=45, height=11)
+        textArea.grid(column=0, row=1, padx=10, columnspan=5, rowspan=5)
         
     def menubar(self, root):
         menubar = tkinter.Menu(root)
@@ -55,8 +60,7 @@ class homePage(tkinter.Frame):
         
         # Settings options
         settingsMenu = Menu(menubar, tearoff=0)
-        settingsMenu.add_command(label="Add/Remove Creator",
-                             command=lambda:self.controller.showFrame("creatorPage"))
+        settingsMenu.add_command(label="Add/Remove Creator", command=lambda: self.controller.showFrame(cPage))
         settingsMenu.add_command(label="Reset Default")##, command=backEndMain.resetToDefault)
         menubar.add_cascade(label="Settings", menu=settingsMenu)
         
@@ -65,49 +69,45 @@ class homePage(tkinter.Frame):
         sortMenu.add_command(label="Creator")##, command=backEndMain.sortVideoByCreator)
         sortMenu.add_command(label="Title")##, command=backEndMain.sortVideoByTitle)
         sortMenu.add_command(label="Date")##, command=backEndMain.sortVideoByDate)
-        menubar.add_cascade(label="Sort By")##, menu=sortMenu)
-            
-        return menubar
-
-    def contentList(self, root):
-        contentList = scrolledtext.ScrolledText(root, width=300, height=200)
-        contentList.focus()
-        return contentList
+        menubar.add_cascade(label="Sort By", menu=sortMenu)
         
-
-# Add / Remove creator page for the application
-class creatorPage(tkinter.Frame):
+        #Return the menubar
+        return menubar
+        
+#################### Creator's Page ####################
+class cPage(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent)
         self.controller = controller
         
+        #################### Text Area ####################
+        textAreaLabel = tkinter.Label(self, text="Videos", font = ('-weighted bold', 10))
+        textAreaLabel.grid(column=0, row=0, pady=10, padx=10, sticky='W')
+
+        textArea = tkinter.scrolledtext.ScrolledText(self, width=45, height=11)
+        textArea.grid(column=0, row=1, padx=10, columnspan=5, rowspan=5)
+        
     def menubar(self, root):
-        menubar = Menu(self)
+        menubar = Menu(root)
         
-        # Back to home button
-        menubar.add_command(label="Home Screen", command=lambda:
-            self.controller.showFrame("homePage"))
+        #Return to home screen button
+        menubar.add_command(label="Home Screen", command=lambda:self.controller.showFrame(homePage))
         
-        # Save changes button
+        #Save changes button
         menubar.add_command(label="Save Changes")##, command=backEndMain.save)
-        
-        # Sort options
+    
+        #Sort options
         sortMenu = Menu(menubar, tearoff=0)
         sortMenu.add_command(label="Creator Name")##, command=backEndMain.sortCreatorByName)
         sortMenu.add_command(label="Video Count")##, command=backEndMain.sortCreatorByVideos)
         sortMenu.add_command(label="Date Added")##, command=backEndMain.sortCreatorByDate)
         menubar.add_cascade(label="Sort By", menu=sortMenu)
             
+        #Return the menubar
         return menubar
-    
-    def contentList(self, root):
-        contentList = scrolledtext.ScrolledText(root)
-        return contentList
-
-
-if __name__ == "__main__":
-    ##backEndMain.load()
-    app = frontEnd()
-    app.title("YouTube SubFeed")
-    app.geometry("400x250")
-    app.mainloop()
+        
+#################### Driver Code ####################
+app = YouTubeApp()
+app.title("YouTube SubFeed")
+app.geometry("400x250")
+app.mainloop()
