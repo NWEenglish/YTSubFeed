@@ -240,7 +240,7 @@ def load():
 
     # Load in creators
     for row in database.loadInCreatorTable():
-        allCreatorsList.append(Creator(row[0], row[1], row[2], row[3]))
+        allCreatorsList.append(Creator(row[0], row[1], row[2], row[3], row[4], row[5]))
 
     # Load in videos
     for row in database.loadInVideoTable():
@@ -315,11 +315,11 @@ def resetToDefault():
 
 if __name__ == "__main__":
 #     print("Doing nothing to help prevent accidental API calls.")
-    lastPullDate[0] = "2020-10-10T19:23:01Z"
-    addCreator("gordonramsay")
-    # addCreator_ByID("UCdoPCztTOW7BJUPk2h5ttXA")
-    pullVideos()
-    save()
+#     lastPullDate[0] = "2020-10-10T19:23:01Z"
+#     addCreator("gordonramsay")
+#     addCreator_ByID("UCdoPCztTOW7BJUPk2h5ttXA")
+#     pullVideos()
+#     load()
 #     addCreator("SSoHPKC")
 #     save()
 #     pullVideos()
