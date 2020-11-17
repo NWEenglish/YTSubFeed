@@ -137,7 +137,7 @@ def addCreator(name: str):
 def save():
 
     # Ensure DB is created
-    if database.doesDBExist() is not True:
+    if database.doesDBExist(os.getcwd()) is not True:
         database.createDB()
 
     # Delete items selected to be removed
@@ -182,7 +182,7 @@ def load():
     print (os.getcwd())
 
     # Ensure DB is created
-    if database.doesDBExist() is not True:
+    if database.doesDBExist(os.getcwd()) is not True:
         database.createDB()
 
     # Clear out all local lists
@@ -268,8 +268,10 @@ def resetToDefault():
     lastPullDate[0] = (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-# if __name__ == "__main__":
-#     print("Doing nothing to help prevent accidental API calls.")
+if __name__ == "__main__":
+    print("Doing nothing to help prevent accidental API calls.")
+    load()
+    save()
 #     addCreator("SSoHPKC")
 #     save()
 #     pullVideos()
