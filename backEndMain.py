@@ -48,7 +48,7 @@ def addToVideoCounter(userName: str):
             creator.videoCounter += 1
 
 
-def getID_APICall_(contentCreator: str):
+def getID_APICall_(contentCreator: str) -> typing.Tuple[str, str, str]:
     # Disable OAuthlib's HTTPS verification when running locally.
     # *DO NOT* leave this option enabled in production.
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
@@ -60,14 +60,40 @@ def getID_APICall_(contentCreator: str):
         api_service_name, api_version, developerKey = DEVELOPER_KEY)
 
     request = youtube.channels().list(
-        part="contentDetails",
+        part="snippet, contentDetails",
         forUsername=contentCreator,
         maxResults=1                   # 50 is max we are allowed to call!
     )
     response = request.execute()
 
+    creatorName = (((response['items'])[0])['snippet'])['title']
     creatorID = ((response['items'])[0])['id']
-    return creatorID
+    imageURL = (((((response['items'])[0])['snippet'])['thumbnails'])['medium'])['url']
+    return creatorName, creatorID, imageURL
+
+
+def getName_APICall_(creatorID: str) -> typing.Tuple[str, str, str]:
+    # Disable OAuthlib's HTTPS verification when running locally.
+    # *DO NOT* leave this option enabled in production.
+    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
+
+    api_service_name = "youtube"
+    api_version = "v3"
+
+    youtube = googleapiclient.discovery.build(
+        api_service_name, api_version, developerKey = DEVELOPER_KEY)
+
+    request = youtube.channels().list(
+        part="snippet, contentDetails",
+        id=creatorID,
+        maxResults=1                   # 50 is max we are allowed to call!
+    )
+    response = request.execute()
+
+    creatorName = (((response['items'])[0])['snippet'])['title']
+    creatorUsername = (((response['items'])[0])['snippet'])['customUrl']
+    imageURL = (((((response['items'])[0])['snippet'])['thumbnails'])['medium'])['url']
+    return creatorName, creatorUsername, imageURL
 
 
 # Get videoID -> https://www.youtube.com/watch?v=videoID
@@ -122,14 +148,33 @@ def getLatestVideos_APICall_(channelID: str, startDate: str, endDate: str):
 
 
 def addCreator(name: str):
-    flag = False
+    isInList = False
 
     for creator in allCreatorsList:
         if name is creator.userName:
-            flag = True
+            isInList = True
+            break
 
-    if flag is False:
-        creator = Creator(name, getID_APICall_(name), 0, (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    if isInList is False:
+        api_results = getID_APICall_(name)
+        creator = Creator(api_results[0], name, api_results[1], 0,
+                          (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"), api_results[2])
+        allCreatorsList.append(creator)
+        addableCreatorsList.append(creator)
+
+
+def addCreator_ByID(id: str):
+    isInList = False
+
+    for creator in allCreatorsList:
+        if id is creator.creatorID:
+            isInList = True
+            break
+
+    if isInList is False:
+        api_results = getName_APICall_(id)
+        creator = Creator(api_results[0], api_results[1], id, 0,
+                          (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"), api_results[2])
         allCreatorsList.append(creator)
         addableCreatorsList.append(creator)
 
@@ -239,7 +284,7 @@ def pullVideos():
 
 
 def sortCreatorByName():
-    allCreatorsList.sort(key=lambda creator: creator.userName)
+    allCreatorsList.sort(key=lambda creator: creator.name)
 
 
 def sortCreatorByVideos():
@@ -269,8 +314,11 @@ def resetToDefault():
 
 
 if __name__ == "__main__":
-    print("Doing nothing to help prevent accidental API calls.")
-    load()
+#     print("Doing nothing to help prevent accidental API calls.")
+    lastPullDate[0] = "2020-10-10T19:23:01Z"
+    addCreator("gordonramsay")
+    # addCreator_ByID("UCdoPCztTOW7BJUPk2h5ttXA")
+    pullVideos()
     save()
 #     addCreator("SSoHPKC")
 #     save()

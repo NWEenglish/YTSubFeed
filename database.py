@@ -65,22 +65,18 @@ def addCreatorToTable(creator: Creator):
     myCursor = myDB.cursor()
 
     try:
-        myCursor.execute("INSERT INTO creatorTable (userName, creatorID, videoCounter, dateAdded) "
-                         "VALUES (?, ?, ?, ?)",
-                         (creator.userName, creator.creatorID, creator.videoCounter, creator.dateAdded))
+        myCursor.execute("INSERT INTO creatorTable (name, userName, creatorID, videoCounter, dateAdded, imageURL) "
+                         "VALUES (?, ?, ?, ?, ?, ?)",
+                         (creator.name, creator.userName, creator.creatorID, creator.videoCounter, creator.dateAdded,
+                          creator.imageURL))
 
     except Exception:
-        myCursor.execute("""CREATE TABLE IF NOT EXISTS creatorTable ( 
-                         userName text,
-                         title text,
-                         videoID text PRIMARY KEY,
-                         imageURL text,
-                         dateUploaded text 
-                         )""")
+        createCreatorTable(myCursor)
 
-        myCursor.execute("INSERT INTO creatorTable (userName, creatorID, videoCounter, dateAdded) "
-                         "VALUES (?, ?, ?, ?)",
-                         (creator.userName, creator.creatorID, creator.videoCounter, creator.dateAdded))
+        myCursor.execute("INSERT INTO creatorTable (name, userName, creatorID, videoCounter, dateAdded, imageURL) "
+                         "VALUES (?, ?, ?, ?, ?, ?)",
+                         (creator.name, creator.userName, creator.creatorID, creator.videoCounter, creator.dateAdded,
+                          creator.imageURL))
 
     myDB.commit()
     myDB.close()
@@ -96,12 +92,7 @@ def addVideoToTable(video: Video):
                          (video.userName, video.title, video.videoID, video.imageURL, video.dateUploaded))
 
     except Exception:
-        myCursor.execute("""CREATE TABLE IF NOT EXISTS videoTable ( 
-                         userName text, 
-                         creatorID text PRIMARY KEY, 
-                         videoCounter integer, 
-                         dateAdded text 
-                         )""")
+        createVideoTable(myCursor)
 
         myCursor.execute("INSERT INTO videoTable (userName, title, videoID, imageURL, dateUploaded) "
                          "VALUES (?, ?, ?, ?, ?)",
@@ -113,23 +104,10 @@ def addVideoToTable(video: Video):
 
 def createDB():
     myDB = sqlite3.connect("myYTSFDB.db")
-
     myCursor = myDB.cursor()
 
-    myCursor.execute("""CREATE TABLE videoTable ( 
-                     userName text, 
-                     creatorID text PRIMARY KEY, 
-                     videoCounter integer, 
-                     dateAdded text 
-                     )""")
-
-    myCursor.execute("""CREATE TABLE creatorTable ( 
-                     userName text,
-                     title text,
-                     videoID text PRIMARY KEY,
-                     imageURL text,
-                     dateUploaded text 
-                     )""")
+    createVideoTable(myCursor)
+    createCreatorTable(myCursor)
 
     myCursor.execute("CREATE TABLE pullDateTable (date text)")
 
@@ -137,16 +115,25 @@ def createDB():
     myDB.close()
 
 
-# def createVideoTableIfNotExist():
-#     myDB = sqlite3.connect("myYTSFDB.db")
-#
-#     myCursor = myDB.cursor()
-#
-#     myCursor.execute("CREATE TABLE videoTable ( "
-#                      "userName VARCHAR(255), "
-#                      "creatorID VARCHAR(255), "
-#                      "videoCounter INT, "
-#                      "dateAdded VARCHAR(255) )")
+def createCreatorTable(myCursor):
+    myCursor.execute("""CREATE TABLE IF NOT EXISTS creatorTable ( 
+                     name text,
+                     userName text,
+                     creatorID text PRIMARY KEY,
+                     videoCounter integer,
+                     dateAdded text,
+                     imageURL text
+                     )""")
+
+
+def createVideoTable(myCursor):
+    myCursor.execute("""CREATE TABLE IF NOT EXISTS videoTable ( 
+                     userName text,
+                     title text,
+                     videoID text PRIMARY KEY,
+                     imageURL text,
+                     dateUploaded text
+                     )""")
 
 
 def doesDBExist(filePath: str) -> bool:
@@ -181,19 +168,3 @@ def deleteFromVideo(videoID: str):
 
     myDB.commit()
     myDB.close()
-
-
-# if __name__ == "__main__":
-#
-#     print("Begin")
-#     # createDB()
-#
-#     myDB1 = sqlite3.connect("myYTSFDB.db")
-#
-#     myCursor1 = myDB1.cursor()
-#     myCursor1.execute("SELECT * FROM pullDateTable")
-#
-#     myResult1 = myCursor1.fetchall()
-#
-#     for r in myResult1:
-#         print(r)
