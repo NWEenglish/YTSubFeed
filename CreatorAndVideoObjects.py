@@ -1,11 +1,11 @@
 class Creator:
-    def __init__(self, userName: str, creatorID: str, videoCounter: int, dateAdded: str):
+    def __init__(self, name: str, userName: str, creatorID: str, videoCounter: int, dateAdded: str, imageURL: str):
+        self.name = name;
         self.userName = userName
         self.creatorID = creatorID.strip()
         self.videoCounter = videoCounter
         self.dateAdded = dateAdded.strip()
-
-        print(userName, " ", creatorID, " ", videoCounter, " ", dateAdded)
+        self.imageURL = imageURL.strip()
 
 
 class Video:
@@ -16,5 +16,3 @@ class Video:
         self.videoURL = "https://www.youtube.com/watch?v=" + videoID.strip()
         self.imageURL = imageURL.strip()
         self.dateUploaded = dateUploaded.strip()
-
-        print(userName, " ", title, " ", videoID, " ", imageURL, " ", dateUploaded, "\n")
