@@ -313,7 +313,7 @@ def resetToDefault():
     lastPullDate[0] = (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 #     print("Doing nothing to help prevent accidental API calls.")
 #     lastPullDate[0] = "2020-10-10T19:23:01Z"
 #     addCreator("gordonramsay")
