@@ -167,7 +167,7 @@ def deleteFromCreator(creatorID: str):
     myDB = sqlite3.connect("myYTSFDB.db")
 
     myCursor = myDB.cursor()
-    myCursor.execute("DELETE FROM creatorTable WHERE creatorID = ?", creatorID)
+    myCursor.execute("DELETE FROM creatorTable WHERE creatorID = (?)", (creatorID,))
 
     myDB.commit()
     myDB.close()
@@ -177,7 +177,7 @@ def deleteFromVideo(videoID: str):
     myDB = sqlite3.connect("myYTSFDB.db")
 
     myCursor = myDB.cursor()
-    myCursor.execute("DELETE FROM videoTable WHERE videoID = ?", videoID)
+    myCursor.execute("DELETE FROM videoTable WHERE videoID = (?)", (videoID,))
 
     myDB.commit()
     myDB.close()
