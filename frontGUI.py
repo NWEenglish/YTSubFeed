@@ -71,7 +71,7 @@ class homePage(tkinter.Frame):
             img = Image.open(BytesIO(raw_data))
             photo = ImageTk.PhotoImage(img)
 
-            label = tkinter.Label(self.contentFrame.scrollable_frame , image=photo)
+            label = tkinter.Label(self.contentFrame.scrollable_frame, image=photo)
             label.image = photo
             label.grid(column=0, row=row+3, sticky='nw')
 
@@ -171,7 +171,7 @@ class ScrollableFrame(ttk.Frame):
         # scrollbar.pack(side="right", fill="y")
 
         canvas.grid(column=0, row=0, rowspan=20)
-        scrollbar.grid(column=0, row=0, rowspan=20, columnspan=20, sticky="e")
+        scrollbar.grid(column=0, row=0, rowspan=20, columnspan=20, sticky="nse")
 
 
 #################### Driver Code ####################
