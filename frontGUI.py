@@ -11,6 +11,7 @@ import backEndMain
 
 window_width = 600
 window_height = 500
+window_col0_width = window_width - 100
 
 
 #################### GUI Setup ####################
@@ -40,10 +41,18 @@ class YouTubeApp(tkinter.Tk):
         
     #Display desired frame by moving it to the front
     def showFrame(self, cont):
+        for f in self.frames:
+            if f is not cont:
+                self.frames[f].grid_hide()
+
         frame = self.frames[cont]
         frame.tkraise()
         menubar = frame.menubar(self)
         self.configure(menu=menubar)
+        try:
+            self.frames[cont].grid_show()
+        except AttributeError:
+            pass
 
 
 #################### Home Screen ####################
@@ -51,43 +60,49 @@ class homePage(tkinter.Frame):
     def __init__(self, parent, controller):
         self.frame = tkinter.Frame.__init__(self, parent)
         self.controller = controller
-
-        #################### Text Area ####################
-        textAreaLabel = tkinter.Label(self, text="Videos", font=('-weighted bold', 18))
-        textAreaLabel.grid(column=0, row=0, pady=1, padx=10, sticky='nw')
-
         self.contentFrame = ScrollableFrame(self.frame)
+        self.parent = parent
+        self.controller = controller
 
         row = 1
-        backEndMain.load()
         for v in backEndMain.allVideosList:
-            ttk.Label(self.contentFrame.scrollable_frame, text=v.title, font=('-weighted bold', 12),
-                      wraplength=window_width-50).grid(column=0, row=row, padx=10, sticky='w')
-            ttk.Label(self.contentFrame.scrollable_frame, text=v.userName, font=('-weighted bold', 10),
-                      wraplength=window_width-50).grid(column=0, row=row+1, padx=10, sticky='w')
-            ttk.Label(self.contentFrame.scrollable_frame, text=v.dateUploaded, font=('-weighted bold', 10),
-                      wraplength=window_width-50).grid(column=0, row=row+2, padx=10, sticky='w')
+            if v not in backEndMain.deletableVideosList:
 
-            # Get image thumbnail
-            url = urlopen(v.imageURL)
-            raw_data = urlopen(v.imageURL).read()
-            url.close()
-            img = Image.open(BytesIO(raw_data))
-            photo = ImageTk.PhotoImage(img)
+                # Video info
+                ttk.Label(self.contentFrame.scrollable_frame, text=v.title, font=('-weighted bold', 12),
+                          wraplength=window_col0_width).grid(column=0, row=row, padx=10, sticky='w')
+                ttk.Label(self.contentFrame.scrollable_frame, text=v.userName, font=('-weighted bold', 10),
+                          wraplength=window_col0_width).grid(column=0, row=row+1, padx=10, sticky='w')
+                ttk.Label(self.contentFrame.scrollable_frame, text=v.dateUploaded, font=('-weighted bold', 10),
+                          wraplength=window_col0_width).grid(column=0, row=row+2, padx=10, sticky='w')
 
-            # Make thumbnail into a clickable hyperlink
-            label = tkinter.Button(self.contentFrame.scrollable_frame, image=photo,
-                                   command=lambda widget=v.videoURL: webbrowser.open_new(widget))
-            label.image = photo
-            label.grid(column=0, row=row+3, padx=10, sticky='w')
+                # Get image thumbnail
+                url = urlopen(v.imageURL)
+                raw_data = urlopen(v.imageURL).read()
+                url.close()
+                img = Image.open(BytesIO(raw_data))
+                photo = ImageTk.PhotoImage(img)
 
-            # Break between entries
-            ttk.Label(self.contentFrame.scrollable_frame, text="",
-                      font=('-weighted bold', 10)).grid(column=0, row=row + 4, padx=10, sticky='w')
-            ttk.Label(self.contentFrame.scrollable_frame, text="-" * 100,
-                      font=('-weighted bold', 10)).grid(column=0, row=row + 5, padx=10, sticky='w')
+                # Make thumbnail into a clickable hyperlink
+                label = tkinter.Button(self.contentFrame.scrollable_frame, image=photo,
+                                       command=lambda widget=v.videoURL: webbrowser.open_new(widget))
+                label.image = photo
+                label.grid(column=0, row=row+3, padx=10, sticky='w')
 
-            row = row + 6
+                # Break between entries
+                ttk.Label(self.contentFrame.scrollable_frame, text="",
+                          font=('-weighted bold', 10)).grid(column=0, row=row + 4, padx=10, sticky='w')
+                ttk.Label(self.contentFrame.scrollable_frame, text="-" * 100,
+                          font=('-weighted bold', 10)).grid(column=0, row=row + 5, padx=10, sticky='w')
+
+                # Button for deletion
+                ttk.Button(self.contentFrame.scrollable_frame, text="Delete",
+                           command=lambda widget=v: [self.contentFrame.grid_forget(),
+                                                     backEndMain.deleteVideo(widget),
+                                                     self.__init__(self.parent, self.controller)])\
+                    .grid(column=1, row=row, sticky='nw')
+
+                row = row + 6
 
         self.contentFrame.grid(column=0, row=1, sticky="ns")
 
@@ -97,9 +112,12 @@ class homePage(tkinter.Frame):
         # Options menu
         optionsMenu = Menu(menubar, tearoff=0)
         optionsMenu.add_command(label="Save")##, command=backEndMain.save)
-        optionsMenu.add_command(label="Reload")##, command=backEndMain.load)
+
+        optionsMenu.add_command(label="Reload", command=lambda: [self.contentFrame.grid_forget(),
+                                                                 backEndMain.load(),
+                                                                 self.__init__(self.parent, self.controller)])
+
         optionsMenu.add_command(label="Pull Videos")##, command=backEndMain.pullVideos)
-        optionsMenu.add_command(label="Delete Selected")
         menubar.add_cascade(label="Options", menu=optionsMenu)
         
         # Settings options
@@ -110,27 +128,83 @@ class homePage(tkinter.Frame):
         
         # Sort options
         sortMenu = Menu(menubar, tearoff=0)
-        sortMenu.add_command(label="Creator")##, command=backEndMain.sortVideoByCreator)
-        sortMenu.add_command(label="Title")##, command=backEndMain.sortVideoByTitle)
-        sortMenu.add_command(label="Date")##, command=backEndMain.sortVideoByDate)
+        sortMenu.add_command(label="Creator", command=lambda: [self.contentFrame.grid_forget(),
+                                                               backEndMain.sortVideoByCreator(),
+                                                               self.__init__(self.parent, self.controller)])
+
+        sortMenu.add_command(label="Title", command=lambda: [self.contentFrame.grid_forget(),
+                                                             backEndMain.sortVideoByTitle(),
+                                                             self.__init__(self.parent, self.controller)])
+
+        sortMenu.add_command(label="Date", command=lambda: [self.contentFrame.grid_forget(),
+                                                            backEndMain.sortVideoByDate(),
+                                                            self.__init__(self.parent, self.controller)])
         menubar.add_cascade(label="Sort By", menu=sortMenu)
         
         #Return the menubar
         return menubar
 
+    def grid_hide(self):
+        self.grid_remove()
+        self.contentFrame.grid_remove()
+
+    def grid_show(self):
+        self.grid()
+        self.contentFrame.grid()
+
 
 #################### Creator's Page ####################
 class cPage(tkinter.Frame):
     def __init__(self, parent, controller):
-        tkinter.Frame.__init__(self, parent)
+        self.frame = tkinter.Frame.__init__(self, parent)
+        self.controller = controller
+        self.contentFrame = ScrollableFrame(self.frame)
+        self.parent = parent
         self.controller = controller
         
-        #################### Text Area ####################
-        textAreaLabel = tkinter.Label(self, text="Videos", font = ('-weighted bold', 10))
-        textAreaLabel.grid(column=0, row=0, pady=10, padx=10, sticky='W')
+        row = 1
+        for c in backEndMain.allCreatorsList:
+            if c not in backEndMain.deletableCreatorsList:
 
-        # textArea = tkinter.scrolledtext.ScrolledText(self, width=45, height=11)
-        # textArea.grid(column=0, row=1, padx=10, columnspan=5, rowspan=5)
+                # Creator info
+                ttk.Label(self.contentFrame.scrollable_frame, text=c.name, font=('-weighted bold', 12),
+                          wraplength=window_col0_width).grid(column=0, row=row, padx=10, sticky='w')
+                ttk.Label(self.contentFrame.scrollable_frame, text="Videos: {}".format(c.videoCounter),
+                          font=('-weighted bold', 10),
+                          wraplength=window_col0_width).grid(column=0, row=row+1, padx=10, sticky='w')
+                ttk.Label(self.contentFrame.scrollable_frame, text="Added on: {}".format(c.dateAdded),
+                          font=('-weighted bold', 10),
+                          wraplength=window_col0_width).grid(column=0, row=row+2, padx=10, sticky='w')
+
+                # Get image thumbnail
+                url = urlopen(c.imageURL)
+                raw_data = urlopen(c.imageURL).read()
+                url.close()
+                img = Image.open(BytesIO(raw_data))
+                photo = ImageTk.PhotoImage(img)
+
+                # Make thumbnail into a clickable hyperlink
+                label = tkinter.Button(self.contentFrame.scrollable_frame, image=photo,
+                                       command=lambda widget=c.channelURL: webbrowser.open_new(widget))
+                label.image = photo
+                label.grid(column=0, row=row+3, padx=10, sticky='w')
+
+                # Break between entries
+                ttk.Label(self.contentFrame.scrollable_frame, text="",
+                          font=('-weighted bold', 10)).grid(column=0, row=row + 4, padx=10, sticky='w')
+                ttk.Label(self.contentFrame.scrollable_frame, text="-" * 100,
+                          font=('-weighted bold', 10)).grid(column=0, row=row + 5, padx=10, sticky='w')
+
+                # Button for deletion
+                ttk.Button(self.contentFrame.scrollable_frame, text="Delete",
+                           command=lambda widget=c: [self.contentFrame.grid_forget(),
+                                                     backEndMain.deleteVideo(widget),
+                                                     self.__init__(self.parent, self.controller)])\
+                    .grid(column=1, row=row, sticky='nw')
+
+                row = row + 6
+
+        self.contentFrame.grid(column=0, row=1, sticky="ns")
         
     def menubar(self, root):
         menubar = Menu(root)
@@ -143,13 +217,30 @@ class cPage(tkinter.Frame):
     
         #Sort options
         sortMenu = Menu(menubar, tearoff=0)
-        sortMenu.add_command(label="Creator Name")##, command=backEndMain.sortCreatorByName)
-        sortMenu.add_command(label="Video Count")##, command=backEndMain.sortCreatorByVideos)
-        sortMenu.add_command(label="Date Added")##, command=backEndMain.sortCreatorByDate)
+        sortMenu.add_command(label="Creator Name", command=[self.contentFrame.grid_forget(),
+                                                            backEndMain.sortCreatorByName(),
+                                                            self.__init__(self.parent, self.controller)])
+
+        sortMenu.add_command(label="Video Count", command=[self.contentFrame.grid_forget(),
+                                                           backEndMain.sortCreatorByVideos(),
+                                                           self.__init__(self.parent, self.controller)])
+
+        sortMenu.add_command(label="Date Added", command=[self.contentFrame.grid_forget(),
+                                                          backEndMain.sortCreatorByDate(),
+                                                          self.__init__(self.parent, self.controller)])
+
         menubar.add_cascade(label="Sort By", menu=sortMenu)
             
         #Return the menubar
         return menubar
+
+    def grid_hide(self):
+        self.grid_remove()
+        self.contentFrame.grid_remove()
+
+    def grid_show(self):
+        self.grid()
+        self.contentFrame.grid()
 
 
 # Credit and appreciation out to Jose Salvatierra! This helped us get the major front end feature working.
@@ -179,6 +270,7 @@ class ScrollableFrame(ttk.Frame):
 
 
 #################### Driver Code ####################
+backEndMain.load()
 app = YouTubeApp()
 app.title("YouTube SubFeed")
 app.geometry("{}x{}".format(window_width, window_height))
