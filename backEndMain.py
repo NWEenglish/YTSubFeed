@@ -28,18 +28,12 @@ addableCreatorsList = []
 addableVideosList = []
 
 
-def deleteCreator(creatorList: typing.List[Creator]):
-    for creator in creatorList:
-        allCreatorsList.remove(creator)
-        deletableCreatorsList.append(creator)
+def deleteCreator(creator: Creator):
+    deletableCreatorsList.append(creator)
 
 
-def deleteVideo(videoList: typing.List[Video]):
-    for video in videoList:
-        allVideosList.remove(video)
-        deletableVideosList.append(video)
-
-    fixVideoCounter()
+def deleteVideo(video: Video):
+    deletableVideosList.append(video)
 
 
 def addToVideoCounter(userName: str):
@@ -288,7 +282,7 @@ def sortCreatorByName():
 
 
 def sortCreatorByVideos():
-    allCreatorsList.sort(key=lambda creator: creator.videoCounter)
+    allCreatorsList.sort(key=lambda creator: (creator.videoCounter, creator.name))
 
 
 def sortCreatorByDate():
@@ -296,7 +290,7 @@ def sortCreatorByDate():
 
 
 def sortVideoByCreator():
-    allVideosList.sort(key=lambda video: video.userName)
+    allVideosList.sort(key=lambda video: (video.userName, video.dateUploaded))
 
 
 def sortVideoByTitle():
