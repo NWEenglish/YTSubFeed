@@ -38,7 +38,7 @@ def deleteVideo(video: Video):
 
 def addToVideoCounter(userName: str):
     for creator in allCreatorsList:
-        if creator.userName.strip() == userName.strip():
+        if creator.name.strip() == userName.strip():
             creator.videoCounter += 1
 
 
@@ -255,7 +255,8 @@ def fixVideoCounter():
         creator.videoCounter = 0
 
     for video in allVideosList:
-        addToVideoCounter(video.userName)
+        if video not in deletableVideosList:
+            addToVideoCounter(video.userName)
 
 
 def pullVideos():
