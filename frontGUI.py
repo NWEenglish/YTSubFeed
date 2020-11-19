@@ -102,7 +102,7 @@ class homePage(tkinter.Frame):
                                                      self.__init__(self.parent, self.controller)])\
                     .grid(column=1, row=row, sticky='nw')
 
-                row = row + 6
+                row += 6
 
         self.contentFrame.grid(column=0, row=1, sticky="ns")
 
@@ -202,7 +202,7 @@ class cPage(tkinter.Frame):
                                                      self.__init__(self.parent, self.controller)])\
                     .grid(column=1, row=row, sticky='nw')
 
-                row = row + 6
+                row += 6
 
         self.contentFrame.grid(column=0, row=1, sticky="ns")
         
