@@ -1,14 +1,17 @@
 import tkinter
+import webbrowser
 from io import BytesIO
-from tkinter import scrolledtext, ttk
+from tkinter import ttk
 from tkinter import Menu
 from urllib.request import urlopen
-from PIL import Image
-from PIL import ImageTk
+from PIL import Image, ImageTk
 
-import CreatorAndVideoObjects
 # from backEndMain import allCreatorsList, allVideosList
 import backEndMain
+
+window_width = 600
+window_height = 500
+
 
 #################### GUI Setup ####################
 class YouTubeApp(tkinter.Tk):
@@ -19,11 +22,10 @@ class YouTubeApp(tkinter.Tk):
         
         #Create container
         container = tkinter.Frame(self)
-        # container.pack(side="top", fill="both", expand=True)
-        container.grid(column=0, row=0)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
-        
+        container.grid(column=0, row=0, sticky="nsew")
+
         #Initialize frames in empty array
         self.frames = {}
         
@@ -43,49 +45,51 @@ class YouTubeApp(tkinter.Tk):
         menubar = frame.menubar(self)
         self.configure(menu=menubar)
 
+
 #################### Home Screen ####################
 class homePage(tkinter.Frame):
     def __init__(self, parent, controller):
         self.frame = tkinter.Frame.__init__(self, parent)
         self.controller = controller
-        
+
         #################### Text Area ####################
-        textAreaLabel = tkinter.Label(self, text="Videos", font = ('-weighted bold', 10))
-        textAreaLabel.grid(column=0, row=0, pady=1, padx=1, sticky='W')
+        textAreaLabel = tkinter.Label(self, text="Videos", font=('-weighted bold', 18))
+        textAreaLabel.grid(column=0, row=0, pady=1, padx=10, sticky='nw')
 
         self.contentFrame = ScrollableFrame(self.frame)
 
-        displayedCreatorsList = []
-        row = 5
+        row = 1
         backEndMain.load()
-        for c in backEndMain.allVideosList:
-            ttk.Label(self.contentFrame.scrollable_frame, text=c.title, font=('-weighted bold', 10)).grid(column=0, row=row, sticky='nw')
-            ttk.Label(self.contentFrame.scrollable_frame, text=c.userName, font=('-weighted bold', 10)).grid(column=0, row=row+1, sticky='nw')
-            ttk.Label(self.contentFrame.scrollable_frame, text=c.dateUploaded, font=('-weighted bold', 10)).grid(column=0, row=row+2, sticky='nw')
+        for v in backEndMain.allVideosList:
+            ttk.Label(self.contentFrame.scrollable_frame, text=v.title, font=('-weighted bold', 12),
+                      wraplength=window_width-50).grid(column=0, row=row, padx=10, sticky='w')
+            ttk.Label(self.contentFrame.scrollable_frame, text=v.userName, font=('-weighted bold', 10),
+                      wraplength=window_width-50).grid(column=0, row=row+1, padx=10, sticky='w')
+            ttk.Label(self.contentFrame.scrollable_frame, text=v.dateUploaded, font=('-weighted bold', 10),
+                      wraplength=window_width-50).grid(column=0, row=row+2, padx=10, sticky='w')
 
-            # Image thumbnail
-            url = urlopen(c.imageURL)
-            raw_data = urlopen(c.imageURL).read()
+            # Get image thumbnail
+            url = urlopen(v.imageURL)
+            raw_data = urlopen(v.imageURL).read()
             url.close()
-
             img = Image.open(BytesIO(raw_data))
             photo = ImageTk.PhotoImage(img)
 
-            label = tkinter.Label(self.contentFrame.scrollable_frame, image=photo)
+            # Make thumbnail into a clickable hyperlink
+            label = tkinter.Button(self.contentFrame.scrollable_frame, image=photo,
+                                   command=lambda widget=v.videoURL: webbrowser.open_new(widget))
             label.image = photo
-            label.grid(column=0, row=row+3, sticky='nw')
+            label.grid(column=0, row=row+3, padx=10, sticky='w')
 
-            ttk.Label(self.contentFrame.scrollable_frame, text="", font=('-weighted bold', 10)).grid(column=0, row=row+4, sticky='nw')
-            row = row + 5
+            # Break between entries
+            ttk.Label(self.contentFrame.scrollable_frame, text="",
+                      font=('-weighted bold', 10)).grid(column=0, row=row + 4, padx=10, sticky='w')
+            ttk.Label(self.contentFrame.scrollable_frame, text="-" * 100,
+                      font=('-weighted bold', 10)).grid(column=0, row=row + 5, padx=10, sticky='w')
 
-            # displayedCreatorsList.append(ttk.Label(videoFrame.scrollable_frame, text=c.title, font=('-weighted bold', 10)))
-            # displayedCreatorsList.append(ttk.Label(videoFrame.scrollable_frame, text=c.videoID, font=('-weighted bold', 10)))
+            row = row + 6
 
-            # displayedCreatorsList[len(displayedCreatorsList)-2].grid(column=0, row=row, pady=5, padx=10, sticky='W')
-            # displayedCreatorsList[len(displayedCreatorsList)-1].grid(column=0, row=row+1, pady=5, padx=10, sticky='W')
-
-        self.contentFrame.grid(column=0, row=1)
-
+        self.contentFrame.grid(column=0, row=1, sticky="ns")
 
     def menubar(self, root):
         menubar = tkinter.Menu(root)
@@ -153,8 +157,9 @@ class cPage(tkinter.Frame):
 class ScrollableFrame(ttk.Frame):
     def __init__(self, container, *args, **kwargs):
         super().__init__(container, *args, **kwargs)
-        canvas = tkinter.Canvas(self)
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        canvas = tkinter.Canvas(self, width=window_width-10, height=window_height-50)
+        vertical_scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        horizontal_scrollbar = ttk.Scrollbar(self, orient="horizontal", command=canvas.xview)
         self.scrollable_frame = ttk.Frame(canvas)
 
         self.scrollable_frame.bind(
@@ -165,17 +170,16 @@ class ScrollableFrame(ttk.Frame):
         )
 
         canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.configure(yscrollcommand=vertical_scrollbar.set)
+        canvas.configure(xscrollcommand=horizontal_scrollbar.set)
 
-        # canvas.pack(side="left", fill="both", expand=True)
-        # scrollbar.pack(side="right", fill="y")
-
-        canvas.grid(column=0, row=0, rowspan=20)
-        scrollbar.grid(column=0, row=0, rowspan=20, columnspan=20, sticky="nse")
+        canvas.grid(column=0, row=0)
+        vertical_scrollbar.grid(column=0, row=0, sticky="nse")
+        # horizontal_scrollbar.grid(column=0, row=0, sticky="swe")
 
 
 #################### Driver Code ####################
 app = YouTubeApp()
 app.title("YouTube SubFeed")
-app.geometry("600x500")
+app.geometry("{}x{}".format(window_width, window_height))
 app.mainloop()
