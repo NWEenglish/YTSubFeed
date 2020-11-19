@@ -10,7 +10,7 @@ from PIL import Image, ImageTk
 import backEndMain
 
 window_width = 600
-window_height = 500
+window_height = 600
 window_col0_width = window_width - 100
 
 
@@ -122,7 +122,7 @@ class homePage(tkinter.Frame):
         
         # Settings options
         settingsMenu = Menu(menubar, tearoff=0)
-        settingsMenu.add_command(label="Add/Remove Creator", command=lambda: self.controller.showFrame(cPage))
+        settingsMenu.add_command(label="Creators Page", command=lambda: self.controller.showFrame(cPage))
         settingsMenu.add_command(label="Reset Default")##, command=backEndMain.resetToDefault)
         menubar.add_cascade(label="Settings", menu=settingsMenu)
         
@@ -139,6 +139,7 @@ class homePage(tkinter.Frame):
         sortMenu.add_command(label="Date", command=lambda: [self.contentFrame.grid_forget(),
                                                             backEndMain.sortVideoByDate(),
                                                             self.__init__(self.parent, self.controller)])
+
         menubar.add_cascade(label="Sort By", menu=sortMenu)
         
         #Return the menubar
@@ -198,9 +199,9 @@ class cPage(tkinter.Frame):
                 # Button for deletion
                 ttk.Button(self.contentFrame.scrollable_frame, text="Delete",
                            command=lambda widget=c: [self.contentFrame.grid_forget(),
-                                                     backEndMain.deleteVideo(widget),
+                                                     backEndMain.deleteCreator(widget),
                                                      self.__init__(self.parent, self.controller)])\
-                    .grid(column=1, row=row, sticky='nw')
+                    .grid(column=2, row=row, sticky='nw')
 
                 row += 6
 
@@ -217,19 +218,21 @@ class cPage(tkinter.Frame):
     
         #Sort options
         sortMenu = Menu(menubar, tearoff=0)
-        sortMenu.add_command(label="Creator Name", command=[self.contentFrame.grid_forget(),
-                                                            backEndMain.sortCreatorByName(),
-                                                            self.__init__(self.parent, self.controller)])
+        sortMenu.add_command(label="Creator Name", command=lambda: [self.contentFrame.grid_forget(),
+                                                                    backEndMain.sortCreatorByName(),
+                                                                    self.__init__(self.parent, self.controller)])
 
-        sortMenu.add_command(label="Video Count", command=[self.contentFrame.grid_forget(),
-                                                           backEndMain.sortCreatorByVideos(),
-                                                           self.__init__(self.parent, self.controller)])
+        sortMenu.add_command(label="Video Count", command=lambda: [self.contentFrame.grid_forget(),
+                                                                   backEndMain.sortCreatorByVideos(),
+                                                                   self.__init__(self.parent, self.controller)])
 
-        sortMenu.add_command(label="Date Added", command=[self.contentFrame.grid_forget(),
-                                                          backEndMain.sortCreatorByDate(),
-                                                          self.__init__(self.parent, self.controller)])
+        sortMenu.add_command(label="Date Added", command=lambda: [self.contentFrame.grid_forget(),
+                                                                  backEndMain.sortCreatorByDate(),
+                                                                  self.__init__(self.parent, self.controller)])
 
         menubar.add_cascade(label="Sort By", menu=sortMenu)
+
+        menubar.add_command(label="Add Creator", command=lambda: self.addCreatorScreen())
             
         #Return the menubar
         return menubar
@@ -242,13 +245,59 @@ class cPage(tkinter.Frame):
         self.grid()
         self.contentFrame.grid()
 
+    def addCreatorScreen(self):
+        window = tkinter.Tk()
+        frame = tkinter.Frame(window, width=window_width, height=window_height)
+
+        selection = tkinter.IntVar(frame)
+
+        tkinter.Radiobutton(frame, text="Username", variable=selection, value=1).grid(row=0, column=0, sticky="w")
+        tkinter.Radiobutton(frame, text="Channel ID", variable=selection, value=2).grid(row=1, column=0, sticky="w")
+        selection.set(1)
+
+        tkinter.Label(frame, text=" " * 5).grid(row=0, column=1)
+        tkinter.Label(frame, text=" " * 5).grid(row=1, column=1)
+
+        userInput = tkinter.Entry(frame, width=30)
+        userInput.grid(row=0, column=2, sticky="e")
+        tkinter.Button(frame, text="Submit", width=10,
+                       command=lambda widget=userInput, widget2=selection:
+                       self.addCreator(widget.get(), widget2.get())).grid(row=1, column=2, sticky="e")
+
+        frame.grid()
+
+    def addCreator(self, creator, value):
+        inListFlag = False
+
+        if value is 1:
+            for c in backEndMain.allCreatorsList:
+                if c not in backEndMain.deletableCreatorsList:
+                    if creator is c.userName:
+                        inListFlag = True
+
+            if not inListFlag:
+                self.contentFrame.grid_forget()
+                backEndMain.addCreator(creator)
+                self.__init__(self.parent, self.controller)
+
+        elif value is 2:
+            for c in backEndMain.allCreatorsList:
+                if c not in backEndMain.deletableCreatorsList:
+                    if creator is c.creatorID:
+                        inListFlag = True
+
+            if not inListFlag:
+                self.contentFrame.grid_forget()
+                backEndMain.addCreator_ByID(creator)
+                self.__init__(self.parent, self.controller)
+
 
 # Credit and appreciation out to Jose Salvatierra! This helped us get the major front end feature working.
 # https://blog.tecladocode.com/tkinter-scrollable-frames/
 class ScrollableFrame(ttk.Frame):
     def __init__(self, container, *args, **kwargs):
         super().__init__(container, *args, **kwargs)
-        canvas = tkinter.Canvas(self, width=window_width-10, height=window_height-50)
+        canvas = tkinter.Canvas(self, width=window_width-10, height=window_height-10)
         vertical_scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
         horizontal_scrollbar = ttk.Scrollbar(self, orient="horizontal", command=canvas.xview)
         self.scrollable_frame = ttk.Frame(canvas)
