@@ -120,7 +120,9 @@ class homePage(tkinter.Frame):
                                                                  backEndMain.load(),
                                                                  self.__init__(self.parent, self.controller)])
 
-        optionsMenu.add_command(label="Pull Videos")##, command=backEndMain.pullVideos)
+        optionsMenu.add_command(label="Pull Videos", command=lambda: [self.contentFrame.grid_forget(),
+                                                                      backEndMain.pullVideos(),
+                                                                      self.__init__(self.parent, self.controller)])
 
         optionsMenu.add_command(label="Reset Default", command=lambda: [self.contentFrame.grid_forget(),
                                                                         backEndMain.resetToDefault(),
