@@ -111,7 +111,7 @@ class homePage(tkinter.Frame):
         
         # Options menu
         optionsMenu = Menu(menubar, tearoff=0)
-        optionsMenu.add_command(label="Save")##, command=backEndMain.save)
+        optionsMenu.add_command(label="Save", command=lambda: backEndMain.save())
 
         optionsMenu.add_command(label="Reload", command=lambda: [self.contentFrame.grid_forget(),
                                                                  backEndMain.load(),
@@ -168,14 +168,16 @@ class cPage(tkinter.Frame):
             if c not in backEndMain.deletableCreatorsList:
 
                 # Creator info
-                ttk.Label(self.contentFrame.scrollable_frame, text=c.name, font=('-weighted bold', 12),
+                ttk.Label(self.contentFrame.scrollable_frame, text=c.name, font=('-weighted bold', 18),
                           wraplength=window_col0_width).grid(column=0, row=row, padx=10, sticky='w')
-                ttk.Label(self.contentFrame.scrollable_frame, text="Videos: {}".format(c.videoCounter),
-                          font=('-weighted bold', 10),
-                          wraplength=window_col0_width).grid(column=0, row=row+1, padx=10, sticky='w')
-                ttk.Label(self.contentFrame.scrollable_frame, text="Added on: {}".format(c.dateAdded),
-                          font=('-weighted bold', 10),
-                          wraplength=window_col0_width).grid(column=0, row=row+2, padx=10, sticky='w')
+
+                # Debating if we really need this
+                # ttk.Label(self.contentFrame.scrollable_frame, text="Videos: {}".format(str(c.videoCounter)),
+                #           font=('-weighted bold', 10),
+                #           wraplength=window_col0_width).grid(column=0, row=row+1, padx=10, sticky='w')
+                # ttk.Label(self.contentFrame.scrollable_frame, text="Added on: {}".format(c.dateAdded),
+                #           font=('-weighted bold', 10),
+                #           wraplength=window_col0_width).grid(column=0, row=row+2, padx=10, sticky='w')
 
                 # Get image thumbnail
                 url = urlopen(c.imageURL)
@@ -214,7 +216,7 @@ class cPage(tkinter.Frame):
         menubar.add_command(label="Home Screen", command=lambda:self.controller.showFrame(homePage))
         
         #Save changes button
-        menubar.add_command(label="Save Changes")##, command=backEndMain.save)
+        menubar.add_command(label="Save Changes", command=lambda: backEndMain.save())
     
         #Sort options
         sortMenu = Menu(menubar, tearoff=0)
@@ -222,13 +224,14 @@ class cPage(tkinter.Frame):
                                                                     backEndMain.sortCreatorByName(),
                                                                     self.__init__(self.parent, self.controller)])
 
-        sortMenu.add_command(label="Video Count", command=lambda: [self.contentFrame.grid_forget(),
-                                                                   backEndMain.sortCreatorByVideos(),
-                                                                   self.__init__(self.parent, self.controller)])
-
-        sortMenu.add_command(label="Date Added", command=lambda: [self.contentFrame.grid_forget(),
-                                                                  backEndMain.sortCreatorByDate(),
-                                                                  self.__init__(self.parent, self.controller)])
+        # If we decide not present these, we won't need this.
+        # sortMenu.add_command(label="Video Count", command=lambda: [self.contentFrame.grid_forget(),
+        #                                                            backEndMain.sortCreatorByVideos(),
+        #                                                            self.__init__(self.parent, self.controller)])
+        #
+        # sortMenu.add_command(label="Date Added", command=lambda: [self.contentFrame.grid_forget(),
+        #                                                           backEndMain.sortCreatorByDate(),
+        #                                                           self.__init__(self.parent, self.controller)])
 
         menubar.add_cascade(label="Sort By", menu=sortMenu)
 
