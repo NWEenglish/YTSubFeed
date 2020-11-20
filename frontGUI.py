@@ -282,10 +282,10 @@ class cPage(tkinter.Frame):
     def addCreator(self, creator, value):
         inListFlag = False
 
-        if value is 1:
+        if value == 1:
             for c in backEndMain.allCreatorsList:
                 if c not in backEndMain.deletableCreatorsList:
-                    if creator is c.userName:
+                    if creator == c.userName:
                         inListFlag = True
 
             if not inListFlag:
@@ -293,10 +293,10 @@ class cPage(tkinter.Frame):
                 backEndMain.addCreator(creator)
                 self.__init__(self.parent, self.controller)
 
-        elif value is 2:
+        elif value == 2:
             for c in backEndMain.allCreatorsList:
                 if c not in backEndMain.deletableCreatorsList:
-                    if creator is c.creatorID:
+                    if creator == c.creatorID:
                         inListFlag = True
 
             if not inListFlag:
