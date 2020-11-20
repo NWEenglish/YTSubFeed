@@ -10,10 +10,11 @@ class Creator:
 
 
 class Video:
-    def __init__(self, userName: str, title: str, videoID: str, imageURL: str, dateUploaded: str):
-        self.userName = userName
+    def __init__(self, name: str, title: str, videoID: str, imageURL: str, dateUploaded: str, creatorID: str):
+        self.name = name
         self.title = title.replace("&#39;", "\'").replace("&amp;", "&")
         self.videoID = videoID.strip()
         self.videoURL = "https://www.youtube.com/watch?v=" + videoID.strip()
         self.imageURL = imageURL.strip()
         self.dateUploaded = dateUploaded.strip()
+        self.creatorID = creatorID.strip()

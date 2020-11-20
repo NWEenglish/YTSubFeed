@@ -37,9 +37,9 @@ def deleteVideo(video: Video):
     fixVideoCounter()
 
 
-def addToVideoCounter(userName: str):
+def addToVideoCounter(creatorID: str):
     for creator in allCreatorsList:
-        if creator.name.strip() == userName.strip():
+        if creator.creatorID.strip() == creatorID.strip():
             creator.videoCounter += 1
 
 
@@ -95,6 +95,9 @@ def getName_APICall_(creatorID: str) -> typing.Tuple[str, str, str]:
 # Ex XSg9C8JbmZU -> https://www.youtube.com/watch?v=XSg9C8JbmZU
 def getLatestVideos_APICall_(channelID: str, startDate: str, endDate: str):
 
+    if isinstance(startDate, list):
+        startDate = startDate[0]
+
     pageToken = ""
 
     while pageToken is not None:
@@ -115,7 +118,7 @@ def getLatestVideos_APICall_(channelID: str, startDate: str, endDate: str):
             maxResults=50,
             order="date",
             pageToken=pageToken,
-            publishedAfter=startDate[0],
+            publishedAfter=startDate,
             publishedBefore=endDate
         )
 
@@ -124,17 +127,21 @@ def getLatestVideos_APICall_(channelID: str, startDate: str, endDate: str):
         itemsList = response['items']
 
         for item in itemsList:
-            userName = (item['snippet'])['channelTitle']
-            title = (item['snippet'])['title']
-            videoID = (item['id'])['videoId']
-            imageURL = (((item['snippet'])['thumbnails'])['medium'])['url']
-            dateUploaded = (item['snippet'])['publishTime']
+            try:
+                userName = (item['snippet'])['channelTitle']
+                title = (item['snippet'])['title']
+                videoID = (item['id'])['videoId']
+                imageURL = (((item['snippet'])['thumbnails'])['medium'])['url']
+                dateUploaded = (item['snippet'])['publishTime']
 
-            video = Video(userName, title, videoID, imageURL, dateUploaded)
-            allVideosList.append(video)
-            addableVideosList.append(video)
+                video = Video(userName, title, videoID, imageURL, dateUploaded, channelID)
+                allVideosList.append(video)
+                addableVideosList.append(video)
 
-            addToVideoCounter(userName)
+                addToVideoCounter(userName)
+
+            except Exception:
+                pass
 
         if "nextPageToken" in response:
             pageToken = response['nextPageToken']
@@ -239,7 +246,7 @@ def load():
 
     # Load in videos
     for row in database.loadInVideoTable():
-        allVideosList.append(Video(row[0], row[1], row[2], row[3], row[4]))
+        allVideosList.append(Video(row[0], row[1], row[2], row[3], row[4], row[5]))
 
     # Load in last pull date
     date = database.loadPullDate()
@@ -257,7 +264,7 @@ def fixVideoCounter():
 
     for video in allVideosList:
         if video not in deletableVideosList:
-            addToVideoCounter(video.userName)
+            addToVideoCounter(video.creatorID)
 
 
 def pullVideos():
