@@ -115,7 +115,7 @@ def getLatestVideos_APICall_(channelID: str, startDate: str, endDate: str):
             maxResults=50,
             order="date",
             pageToken=pageToken,
-            publishedAfter=startDate,
+            publishedAfter=startDate[0],
             publishedBefore=endDate
         )
 
