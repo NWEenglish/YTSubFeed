@@ -11,7 +11,7 @@ import backEndMain
 
 window_width = 600
 window_height = 600
-window_col0_width = window_width - 100
+window_col0_width = window_width - 120
 
 
 #################### GUI Setup ####################
@@ -74,7 +74,7 @@ class homePage(tkinter.Frame):
                 # Video info
                 ttk.Label(self.contentFrame.scrollable_frame, text=v.title, font=('-weighted bold', 12),
                           wraplength=window_col0_width).grid(column=0, row=row, padx=10, sticky='w')
-                ttk.Label(self.contentFrame.scrollable_frame, text=v.userName, font=('-weighted bold', 10),
+                ttk.Label(self.contentFrame.scrollable_frame, text=v.name, font=('-weighted bold', 10),
                           wraplength=window_col0_width).grid(column=0, row=row+1, padx=10, sticky='w')
                 ttk.Label(self.contentFrame.scrollable_frame, text=v.dateUploaded, font=('-weighted bold', 10),
                           wraplength=window_col0_width).grid(column=0, row=row+2, padx=10, sticky='w')
@@ -333,6 +333,7 @@ class ScrollableFrame(ttk.Frame):
 
 #################### Driver Code ####################
 backEndMain.load()
+backEndMain.lastPullDate[0] = "2020-11-10T20:00:11Z"
 app = YouTubeApp()
 app.title("YouTube SubFeed")
 app.geometry("{}x{}".format(window_width, window_height))

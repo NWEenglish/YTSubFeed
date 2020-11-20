@@ -87,16 +87,16 @@ def addVideoToTable(video: Video):
     myCursor = myDB.cursor()
 
     try:
-        myCursor.execute("INSERT INTO videoTable (userName, title, videoID, imageURL, dateUploaded) "
-                         "VALUES (?, ?, ?, ?, ?)",
-                         (video.userName, video.title, video.videoID, video.imageURL, video.dateUploaded))
+        myCursor.execute("INSERT INTO videoTable (name, title, videoID, imageURL, dateUploaded, creatorID) "
+                         "VALUES (?, ?, ?, ?, ?, ?)",
+                         (video.name, video.title, video.videoID, video.imageURL, video.dateUploaded, video.creatorID))
 
     except Exception:
         createVideoTable(myCursor)
 
-        myCursor.execute("INSERT INTO videoTable (userName, title, videoID, imageURL, dateUploaded) "
-                         "VALUES (?, ?, ?, ?, ?)",
-                         (video.userName, video.title, video.videoID, video.imageURL, video.dateUploaded))
+        myCursor.execute("INSERT INTO videoTable (name, title, videoID, imageURL, dateUploaded, creatorID) "
+                         "VALUES (?, ?, ?, ?, ?, ?)",
+                         (video.name, video.title, video.videoID, video.imageURL, video.dateUploaded, video.creatorID))
 
     myDB.commit()
     myDB.close()
@@ -128,11 +128,12 @@ def createCreatorTable(myCursor):
 
 def createVideoTable(myCursor):
     myCursor.execute("""CREATE TABLE IF NOT EXISTS videoTable ( 
-                     userName text,
+                     name text,
                      title text,
                      videoID text PRIMARY KEY,
                      imageURL text,
-                     dateUploaded text
+                     dateUploaded text,
+                     creatorID text
                      )""")
 
 
