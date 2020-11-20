@@ -16,7 +16,7 @@ def loadPullDate() -> str:
 
     myResult = myCursor.fetchall()
 
-    if len(myResult) is 0:
+    if len(myResult) == 0:
         return ""
 
     else:

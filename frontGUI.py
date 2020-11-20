@@ -42,10 +42,10 @@ class YouTubeApp(tkinter.Tk):
     #Display desired frame by moving it to the front
     def showFrame(self, cont):
         for f in self.frames:
-            if f is not cont:
+            if f != cont:
                 self.frames[f].grid_hide()
 
-        if cont is cPage:
+        if cont == cPage:
             self.frames[cont].reinitialize()
 
         frame = self.frames[cont]
