@@ -45,6 +45,9 @@ class YouTubeApp(tkinter.Tk):
             if f is not cont:
                 self.frames[f].grid_hide()
 
+        if cont is cPage:
+            self.frames[cont].reinitialize()
+
         frame = self.frames[cont]
         frame.tkraise()
         menubar = frame.menubar(self)
@@ -118,13 +121,15 @@ class homePage(tkinter.Frame):
                                                                  self.__init__(self.parent, self.controller)])
 
         optionsMenu.add_command(label="Pull Videos")##, command=backEndMain.pullVideos)
+
+        optionsMenu.add_command(label="Reset Default", command=lambda: [self.contentFrame.grid_forget(),
+                                                                        backEndMain.resetToDefault(),
+                                                                        self.__init__(self.parent, self.controller)])
+
         menubar.add_cascade(label="Options", menu=optionsMenu)
         
         # Settings options
-        settingsMenu = Menu(menubar, tearoff=0)
-        settingsMenu.add_command(label="Creators Page", command=lambda: self.controller.showFrame(cPage))
-        settingsMenu.add_command(label="Reset Default")##, command=backEndMain.resetToDefault)
-        menubar.add_cascade(label="Settings", menu=settingsMenu)
+        menubar.add_command(label="Creators Page", command=lambda: self.controller.showFrame(cPage))
         
         # Sort options
         sortMenu = Menu(menubar, tearoff=0)
@@ -172,12 +177,12 @@ class cPage(tkinter.Frame):
                           wraplength=window_col0_width).grid(column=0, row=row, padx=10, sticky='w')
 
                 # Debating if we really need this
-                # ttk.Label(self.contentFrame.scrollable_frame, text="Videos: {}".format(str(c.videoCounter)),
-                #           font=('-weighted bold', 10),
-                #           wraplength=window_col0_width).grid(column=0, row=row+1, padx=10, sticky='w')
-                # ttk.Label(self.contentFrame.scrollable_frame, text="Added on: {}".format(c.dateAdded),
-                #           font=('-weighted bold', 10),
-                #           wraplength=window_col0_width).grid(column=0, row=row+2, padx=10, sticky='w')
+                ttk.Label(self.contentFrame.scrollable_frame, text="Videos: {}".format(str(c.videoCounter)),
+                          font=('-weighted bold', 10),
+                          wraplength=window_col0_width).grid(column=0, row=row+1, padx=10, sticky='w')
+                ttk.Label(self.contentFrame.scrollable_frame, text="Added on: {}".format(c.dateAdded),
+                          font=('-weighted bold', 10),
+                          wraplength=window_col0_width).grid(column=0, row=row+2, padx=10, sticky='w')
 
                 # Get image thumbnail
                 url = urlopen(c.imageURL)
@@ -213,7 +218,7 @@ class cPage(tkinter.Frame):
         menubar = Menu(root)
         
         #Return to home screen button
-        menubar.add_command(label="Home Screen", command=lambda:self.controller.showFrame(homePage))
+        menubar.add_command(label="Home Screen", command=lambda: self.controller.showFrame(homePage))
         
         #Save changes button
         menubar.add_command(label="Save Changes", command=lambda: backEndMain.save())
@@ -225,13 +230,13 @@ class cPage(tkinter.Frame):
                                                                     self.__init__(self.parent, self.controller)])
 
         # If we decide not present these, we won't need this.
-        # sortMenu.add_command(label="Video Count", command=lambda: [self.contentFrame.grid_forget(),
-        #                                                            backEndMain.sortCreatorByVideos(),
-        #                                                            self.__init__(self.parent, self.controller)])
-        #
-        # sortMenu.add_command(label="Date Added", command=lambda: [self.contentFrame.grid_forget(),
-        #                                                           backEndMain.sortCreatorByDate(),
-        #                                                           self.__init__(self.parent, self.controller)])
+        sortMenu.add_command(label="Video Count", command=lambda: [self.contentFrame.grid_forget(),
+                                                                   backEndMain.sortCreatorByVideos(),
+                                                                   self.__init__(self.parent, self.controller)])
+
+        sortMenu.add_command(label="Date Added", command=lambda: [self.contentFrame.grid_forget(),
+                                                                  backEndMain.sortCreatorByDate(),
+                                                                  self.__init__(self.parent, self.controller)])
 
         menubar.add_cascade(label="Sort By", menu=sortMenu)
 
@@ -247,6 +252,9 @@ class cPage(tkinter.Frame):
     def grid_show(self):
         self.grid()
         self.contentFrame.grid()
+
+    def reinitialize(self):
+        self.__init__(self.parent, self.controller)
 
     def addCreatorScreen(self):
         window = tkinter.Tk()
