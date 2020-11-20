@@ -153,11 +153,11 @@ def addCreator(name: str):
     isInList = False
 
     for creator in allCreatorsList:
-        if name is creator.userName:
+        if name == creator.userName:
             isInList = True
             break
 
-    if isInList is False:
+    if not isInList:
         api_results = getID_APICall_(name)
         creator = Creator(api_results[0], name, api_results[1], 0,
                           (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"), api_results[2])
@@ -169,11 +169,11 @@ def addCreator_ByID(id: str):
     isInList = False
 
     for creator in allCreatorsList:
-        if id is creator.creatorID:
+        if id == creator.creatorID:
             isInList = True
             break
 
-    if isInList is False:
+    if not isInList:
         api_results = getName_APICall_(id)
         creator = Creator(api_results[0], api_results[1], id, 0,
                           (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ"), api_results[2])
@@ -184,11 +184,11 @@ def addCreator_ByID(id: str):
 def save():
 
     # Ensure DB is created
-    if database.doesDBExist(os.getcwd()) is not True:
+    if not database.doesDBExist(os.getcwd()):
         database.createDB()
 
     # Delete items selected to be removed
-    if len(deletableCreatorsList) is not 0:
+    if len(deletableCreatorsList) != 0:
         for creator in deletableCreatorsList:
             allCreatorsList.remove(creator)
             if creator in addableCreatorsList:
@@ -196,7 +196,7 @@ def save():
             else:
                 database.deleteFromCreator(creator.creatorID)
 
-    if len(deletableVideosList) is not 0:
+    if len(deletableVideosList) != 0:
         for video in deletableVideosList:
             allVideosList.remove(video)
             if video in addableVideosList:
@@ -208,11 +208,11 @@ def save():
     deletableVideosList.clear()
 
     # Add all new items
-    if len(addableCreatorsList) is not 0:
+    if len(addableCreatorsList) != 0:
         for creator in addableCreatorsList:
             database.addCreatorToTable(creator)
 
-    if len(addableVideosList) is not 0:
+    if len(addableVideosList) != 0:
         for video in addableVideosList:
             database.addVideoToTable(video)
 
@@ -220,7 +220,7 @@ def save():
     addableVideosList.clear()
 
     # Update last pull date if applicable
-    if lastPullDate[0] is not database.loadPullDate():
+    if lastPullDate[0] != database.loadPullDate():
         database.updatePullDate(lastPullDate[0])
 
 
@@ -229,7 +229,7 @@ def load():
     print (os.getcwd())
 
     # Ensure DB is created
-    if database.doesDBExist(os.getcwd()) is not True:
+    if not database.doesDBExist(os.getcwd()):
         database.createDB()
 
     # Clear out all local lists
@@ -250,7 +250,7 @@ def load():
 
     # Load in last pull date
     date = database.loadPullDate()
-    if not date or date is "":
+    if not date or date == "":
         lastPullDate[0] = (datetime.datetime.now()).strftime("%Y-%m-%dT%H:%M:%SZ")
     else:
         lastPullDate[0] = date
