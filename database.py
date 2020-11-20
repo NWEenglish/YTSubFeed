@@ -28,7 +28,7 @@ def updatePullDate(date: str):
     myCursor = myDB.cursor()
 
     myCursor.execute("DELETE FROM pullDateTable")
-    myCursor.execute("INSERT INTO pullDateTable VALUES (?)", (date,))
+    myCursor.execute("INSERT INTO pullDateTable VALUES (?)", (date[0],))
 
     myDB.commit()
     myDB.close()

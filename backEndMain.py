@@ -34,6 +34,7 @@ def deleteCreator(creator: Creator):
 
 def deleteVideo(video: Video):
     deletableVideosList.append(video)
+    fixVideoCounter()
 
 
 def addToVideoCounter(userName: str):
