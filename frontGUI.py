@@ -124,9 +124,7 @@ class homePage(tkinter.Frame):
 
         optionsMenu.add_command(label="Pull Videos", command=lambda: self.pullVideosWithCheck())
 
-        optionsMenu.add_command(label="Reset Default", command=lambda: [self.contentFrame.grid_forget(),
-                                                                        backEndMain.resetToDefault(),
-                                                                        self.__init__(self.parent, self.controller)])
+        optionsMenu.add_command(label="Reset To Default", command=lambda: [self.resetToDefaultWitchCheck()])
 
         menubar.add_cascade(label="Options", menu=optionsMenu)
         
@@ -152,11 +150,34 @@ class homePage(tkinter.Frame):
         #Return the menubar
         return menubar
 
+    def resetToDefaultWitchCheck(self):
+        window = tkinter.Toplevel(self.parent)
+        window.grab_set()
+        window.resizable(width=False, height=False)
+
+        tkinter.Label(window, text="Are you sure you wish to reset?\n\nYou will still have to save later.",
+                      font=('-weighted bold', 12), wraplength=250).grid(row=0, column=0, columnspan=3, sticky="nwe")
+
+        tkinter.Button(window, text="Continue", width=10, command=lambda: [window.destroy(),
+                                                                           self.contentFrame.grid_forget(),
+                                                                           backEndMain.resetToDefault(),
+                                                                           self.__init__(self.parent, self.controller)]
+                       ).grid(row=2, column=2, sticky="e", pady=10, padx=10)
+
+        tkinter.Label(window, text=" " * 5).grid(row=1, column=1)
+        tkinter.Label(window, text=" " * 5).grid(row=2, column=1)
+
+        tkinter.Button(window, text="Cancel", width=10, command=lambda: window.destroy()
+                       ).grid(row=2, column=0, sticky="w", pady=10, padx=10)
+
+        window.grid()
+
     def pullVideosWithCheck(self):
         if backEndMain.lastPullDate[0] == "":
 
             window = tkinter.Toplevel(self.parent)
             window.grab_set()
+            window.resizable(width=False, height=False)
 
             userInput = DateEntry(window, width=12, bg="darkblue", fg="white", firstweekday="sunday",
                                   showweeknumbers=False, maxdate=datetime.datetime.now(), mindate=self.getMinDate())
