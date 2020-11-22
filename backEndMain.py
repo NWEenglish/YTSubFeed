@@ -276,8 +276,19 @@ def pullVideos():
         getLatestVideos_APICall_(creator.creatorID, startPullDate, endPullDate)
 
     lastPullDate[0] = endPullDate
+    videosList = []
 
-    videosList = list(dict.fromkeys(allVideosList))
+    # Ensure all videos in list are unique
+    for avl in allVideosList:
+        inList = False
+        for vl in videosList:
+            if avl.videoID == vl.videoID:
+                inList = True
+                break
+
+        if not inList:
+            videosList.append(avl)
+
     allVideosList.clear()
 
     for video in videosList:

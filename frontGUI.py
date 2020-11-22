@@ -5,6 +5,8 @@ from tkinter import ttk
 from tkinter import Menu
 from urllib.request import urlopen
 from PIL import Image, ImageTk
+from tkcalendar import DateEntry
+import datetime
 
 # from backEndMain import allCreatorsList, allVideosList
 import backEndMain
@@ -120,9 +122,7 @@ class homePage(tkinter.Frame):
                                                                  backEndMain.load(),
                                                                  self.__init__(self.parent, self.controller)])
 
-        optionsMenu.add_command(label="Pull Videos", command=lambda: [self.contentFrame.grid_forget(),
-                                                                      backEndMain.pullVideos(),
-                                                                      self.__init__(self.parent, self.controller)])
+        optionsMenu.add_command(label="Pull Videos", command=lambda: self.pullVideosWithCheck())
 
         optionsMenu.add_command(label="Reset Default", command=lambda: [self.contentFrame.grid_forget(),
                                                                         backEndMain.resetToDefault(),
@@ -151,6 +151,42 @@ class homePage(tkinter.Frame):
         
         #Return the menubar
         return menubar
+
+    def pullVideosWithCheck(self):
+        if backEndMain.lastPullDate[0] == "":
+
+            window = tkinter.Toplevel(self.parent)
+            window.grab_set()
+
+            userInput = DateEntry(window, width=12, bg="darkblue", fg="white", firstweekday="sunday",
+                                  showweeknumbers=False, maxdate=datetime.datetime.now(), mindate=self.getMinDate())
+            userInput.grid(column=0, row=0, sticky="nws")
+
+            tkinter.Label(window, text=" " * 5).grid(row=0, column=1)
+
+            tkinter.Button(window, text="Submit", width=10,
+                           command=lambda widget=userInput:
+                           [self.contentFrame.grid_forget(),
+                            backEndMain.lastPullDate.clear(),
+                            backEndMain.lastPullDate.append(datetime.datetime(year=widget.get_date().year,
+                                                                              month=widget.get_date().month,
+                                                                              day=widget.get_date().day)
+                                                            .strftime("%Y-%m-%dT%H:%M:%SZ")),
+                            window.destroy(),
+                            backEndMain.pullVideos(),
+                            self.__init__(self.parent, self.controller)]).grid(row=0, column=2, sticky="e")
+
+            window.grid()
+
+    # Credit and thanks to Glenn Maynard
+    # https://stackoverflow.com/questions/5158160/python-get-datetime-for-3-years-ago-today/5159103#5159103
+    def getMinDate(self):
+        dateToday = datetime.datetime.now()
+        try:
+            dateToday = dateToday.replace(year=dateToday.year - 1)
+        except ValueError:
+            dateToday = dateToday.replace(year=dateToday.year - 1, day=dateToday.day - 1)
+        return dateToday
 
     def grid_hide(self):
         self.grid_remove()
@@ -259,7 +295,8 @@ class cPage(tkinter.Frame):
         self.__init__(self.parent, self.controller)
 
     def addCreatorScreen(self):
-        window = tkinter.Tk()
+        window = tkinter.Toplevel(self.parent)
+        window.grab_set()
         frame = tkinter.Frame(window, width=window_width, height=window_height)
 
         selection = tkinter.IntVar(frame)
@@ -275,7 +312,8 @@ class cPage(tkinter.Frame):
         userInput.grid(row=0, column=2, sticky="e")
         tkinter.Button(frame, text="Submit", width=10,
                        command=lambda widget=userInput, widget2=selection:
-                       self.addCreator(widget.get(), widget2.get())).grid(row=1, column=2, sticky="e")
+                       [self.addCreator(widget.get(), widget2.get()),
+                        window.destroy()]).grid(row=1, column=2, sticky="e")
 
         frame.grid()
 
@@ -328,13 +366,12 @@ class ScrollableFrame(ttk.Frame):
 
         canvas.grid(column=0, row=0)
         vertical_scrollbar.grid(column=0, row=0, sticky="nse")
-        # horizontal_scrollbar.grid(column=0, row=0, sticky="swe")
 
 
 #################### Driver Code ####################
 if __name__ == '__main__':
     backEndMain.load()
-    backEndMain.lastPullDate[0] = "2020-11-10T20:00:11Z"
+    backEndMain.lastPullDate[0] = ""
     app = YouTubeApp()
     app.title("YouTube SubFeed")
     app.geometry("{}x{}".format(window_width, window_height))
