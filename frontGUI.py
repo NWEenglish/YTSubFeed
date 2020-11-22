@@ -371,7 +371,7 @@ class ScrollableFrame(ttk.Frame):
 #################### Driver Code ####################
 if __name__ == '__main__':
     backEndMain.load()
-    backEndMain.lastPullDate[0] = ""
+    # backEndMain.lastPullDate[0] = ""
     app = YouTubeApp()
     app.title("YouTube SubFeed")
     app.geometry("{}x{}".format(window_width, window_height))
