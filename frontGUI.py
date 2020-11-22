@@ -1,7 +1,7 @@
 import tkinter
 import webbrowser
 from io import BytesIO
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from tkinter import Menu
 from urllib.request import urlopen
 from PIL import Image, ImageTk
@@ -389,6 +389,11 @@ class ScrollableFrame(ttk.Frame):
         vertical_scrollbar.grid(column=0, row=0, sticky="nse")
 
 
+def on_closing():
+    if messagebox.askokcancel("Quit", "Are you sure you want to quit?\nAny unsaved changes will not be saved!"):
+        app.destroy()
+
+
 #################### Driver Code ####################
 if __name__ == '__main__':
     backEndMain.load()
@@ -396,4 +401,5 @@ if __name__ == '__main__':
     app = YouTubeApp()
     app.title("YouTube SubFeed")
     app.geometry("{}x{}".format(window_width, window_height))
+    app.protocol("WM_DELETE_WINDOW", on_closing)
     app.mainloop()
