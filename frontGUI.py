@@ -339,29 +339,15 @@ class cPage(tkinter.Frame):
         frame.grid()
 
     def addCreator(self, creator, value):
-        inListFlag = False
+        self.contentFrame.grid_forget()
 
         if value == 1:
-            for c in backEndMain.allCreatorsList:
-                if c not in backEndMain.deletableCreatorsList:
-                    if creator == c.userName:
-                        inListFlag = True
-
-            if not inListFlag:
-                self.contentFrame.grid_forget()
-                backEndMain.addCreator(creator)
-                self.__init__(self.parent, self.controller)
+            backEndMain.addCreator(creator)
 
         elif value == 2:
-            for c in backEndMain.allCreatorsList:
-                if c not in backEndMain.deletableCreatorsList:
-                    if creator == c.creatorID:
-                        inListFlag = True
+            backEndMain.addCreator_ByID(creator)
 
-            if not inListFlag:
-                self.contentFrame.grid_forget()
-                backEndMain.addCreator_ByID(creator)
-                self.__init__(self.parent, self.controller)
+        self.__init__(self.parent, self.controller)
 
 
 # Credit and appreciation out to Jose Salvatierra! This helped us get the major front end feature working.
