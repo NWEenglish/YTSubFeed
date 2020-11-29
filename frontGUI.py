@@ -1,10 +1,12 @@
 import tkinter
 import webbrowser
 from io import BytesIO
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from tkinter import Menu
 from urllib.request import urlopen
 from PIL import Image, ImageTk
+from tkcalendar import DateEntry
+import datetime
 
 # from backEndMain import allCreatorsList, allVideosList
 import backEndMain
@@ -120,13 +122,9 @@ class homePage(tkinter.Frame):
                                                                  backEndMain.load(),
                                                                  self.__init__(self.parent, self.controller)])
 
-        optionsMenu.add_command(label="Pull Videos", command=lambda: [self.contentFrame.grid_forget(),
-                                                                      backEndMain.pullVideos(),
-                                                                      self.__init__(self.parent, self.controller)])
+        optionsMenu.add_command(label="Pull Videos", command=lambda: self.pullVideosWithCheck())
 
-        optionsMenu.add_command(label="Reset Default", command=lambda: [self.contentFrame.grid_forget(),
-                                                                        backEndMain.resetToDefault(),
-                                                                        self.__init__(self.parent, self.controller)])
+        optionsMenu.add_command(label="Reset To Default", command=lambda: [self.resetToDefaultWitchCheck()])
 
         menubar.add_cascade(label="Options", menu=optionsMenu)
         
@@ -151,6 +149,65 @@ class homePage(tkinter.Frame):
         
         #Return the menubar
         return menubar
+
+    def resetToDefaultWitchCheck(self):
+        window = tkinter.Toplevel(self.parent)
+        window.grab_set()
+        window.resizable(width=False, height=False)
+
+        tkinter.Label(window, text="Are you sure you wish to reset?\n\nYou will still have to save later.",
+                      font=('-weighted bold', 12), wraplength=250).grid(row=0, column=0, columnspan=3, sticky="nwe")
+
+        tkinter.Button(window, text="Continue", width=10, command=lambda: [window.destroy(),
+                                                                           self.contentFrame.grid_forget(),
+                                                                           backEndMain.resetToDefault(),
+                                                                           self.__init__(self.parent, self.controller)]
+                       ).grid(row=2, column=2, sticky="e", pady=10, padx=10)
+
+        tkinter.Label(window, text=" " * 5).grid(row=1, column=1)
+        tkinter.Label(window, text=" " * 5).grid(row=2, column=1)
+
+        tkinter.Button(window, text="Cancel", width=10, command=lambda: window.destroy()
+                       ).grid(row=2, column=0, sticky="w", pady=10, padx=10)
+
+        window.grid()
+
+    def pullVideosWithCheck(self):
+        if backEndMain.lastPullDate[0] == "":
+
+            window = tkinter.Toplevel(self.parent)
+            window.grab_set()
+            window.resizable(width=False, height=False)
+
+            userInput = DateEntry(window, width=12, bg="darkblue", fg="white", firstweekday="sunday",
+                                  showweeknumbers=False, maxdate=datetime.datetime.now(), mindate=self.getMinDate())
+            userInput.grid(column=0, row=0, sticky="nws")
+
+            tkinter.Label(window, text=" " * 5).grid(row=0, column=1)
+
+            tkinter.Button(window, text="Submit", width=10,
+                           command=lambda widget=userInput:
+                           [self.contentFrame.grid_forget(),
+                            backEndMain.lastPullDate.clear(),
+                            backEndMain.lastPullDate.append(datetime.datetime(year=widget.get_date().year,
+                                                                              month=widget.get_date().month,
+                                                                              day=widget.get_date().day)
+                                                            .strftime("%Y-%m-%dT%H:%M:%SZ")),
+                            window.destroy(),
+                            backEndMain.pullVideos(),
+                            self.__init__(self.parent, self.controller)]).grid(row=0, column=2, sticky="e")
+
+            window.grid()
+
+    # Credit and thanks to Glenn Maynard
+    # https://stackoverflow.com/questions/5158160/python-get-datetime-for-3-years-ago-today/5159103#5159103
+    def getMinDate(self):
+        dateToday = datetime.datetime.now()
+        try:
+            dateToday = dateToday.replace(year=dateToday.year - 1)
+        except ValueError:
+            dateToday = dateToday.replace(year=dateToday.year - 1, day=dateToday.day - 1)
+        return dateToday
 
     def grid_hide(self):
         self.grid_remove()
@@ -259,7 +316,8 @@ class cPage(tkinter.Frame):
         self.__init__(self.parent, self.controller)
 
     def addCreatorScreen(self):
-        window = tkinter.Tk()
+        window = tkinter.Toplevel(self.parent)
+        window.grab_set()
         frame = tkinter.Frame(window, width=window_width, height=window_height)
 
         selection = tkinter.IntVar(frame)
@@ -275,34 +333,21 @@ class cPage(tkinter.Frame):
         userInput.grid(row=0, column=2, sticky="e")
         tkinter.Button(frame, text="Submit", width=10,
                        command=lambda widget=userInput, widget2=selection:
-                       self.addCreator(widget.get(), widget2.get())).grid(row=1, column=2, sticky="e")
+                       [self.addCreator(widget.get(), widget2.get()),
+                        window.destroy()]).grid(row=1, column=2, sticky="e")
 
         frame.grid()
 
     def addCreator(self, creator, value):
-        inListFlag = False
+        self.contentFrame.grid_forget()
 
         if value == 1:
-            for c in backEndMain.allCreatorsList:
-                if c not in backEndMain.deletableCreatorsList:
-                    if creator == c.userName:
-                        inListFlag = True
-
-            if not inListFlag:
-                self.contentFrame.grid_forget()
-                backEndMain.addCreator(creator)
-                self.__init__(self.parent, self.controller)
+            backEndMain.addCreator(creator)
 
         elif value == 2:
-            for c in backEndMain.allCreatorsList:
-                if c not in backEndMain.deletableCreatorsList:
-                    if creator == c.creatorID:
-                        inListFlag = True
+            backEndMain.addCreator_ByID(creator)
 
-            if not inListFlag:
-                self.contentFrame.grid_forget()
-                backEndMain.addCreator_ByID(creator)
-                self.__init__(self.parent, self.controller)
+        self.__init__(self.parent, self.controller)
 
 
 # Credit and appreciation out to Jose Salvatierra! This helped us get the major front end feature working.
@@ -328,14 +373,19 @@ class ScrollableFrame(ttk.Frame):
 
         canvas.grid(column=0, row=0)
         vertical_scrollbar.grid(column=0, row=0, sticky="nse")
-        # horizontal_scrollbar.grid(column=0, row=0, sticky="swe")
+
+
+def on_closing():
+    if messagebox.askokcancel("Quit", "Are you sure you want to quit?\nAny unsaved changes will not be saved!"):
+        app.destroy()
 
 
 #################### Driver Code ####################
 if __name__ == '__main__':
     backEndMain.load()
-    backEndMain.lastPullDate[0] = "2020-11-10T20:00:11Z"
+    # backEndMain.lastPullDate[0] = ""
     app = YouTubeApp()
     app.title("YouTube SubFeed")
     app.geometry("{}x{}".format(window_width, window_height))
+    app.protocol("WM_DELETE_WINDOW", on_closing)
     app.mainloop()
