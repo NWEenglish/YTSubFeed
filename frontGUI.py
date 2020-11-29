@@ -1,3 +1,4 @@
+import time
 import tkinter
 import webbrowser
 from io import BytesIO
@@ -7,8 +8,6 @@ from urllib.request import urlopen
 from PIL import Image, ImageTk
 from tkcalendar import DateEntry
 import datetime
-
-# from backEndMain import allCreatorsList, allVideosList
 import backEndMain
 
 window_width = 600
@@ -18,30 +17,30 @@ window_col0_width = window_width - 120
 
 #################### GUI Setup ####################
 class YouTubeApp(tkinter.Tk):
-    #__init__ function for YouTubeApp
+    # __init__ function for YouTubeApp
     def __init__(self, *args, **kwargs):
-        #__init__ function for Tk class
+        # __init__ function for Tk class
         tkinter.Tk.__init__(self, *args, **kwargs)
         
-        #Create container
+        # Create container
         container = tkinter.Frame(self)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         container.grid(column=0, row=0, sticky="nsew")
 
-        #Initialize frames in empty array
+        # Initialize frames in empty array
         self.frames = {}
         
-        #Iterate through frame layouts
-        for F in (homePage, cPage):
+        # Iterate through frame layouts
+        for F in (homePage, cPage, LoadingScreen):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
             
-        #Initially show home screen
+        # Initially show loading screen and then home screen
         self.showFrame(homePage)
         
-    #Display desired frame by moving it to the front
+    # Display desired frame by moving it to the front
     def showFrame(self, cont):
         for f in self.frames:
             if f != cont:
@@ -60,6 +59,28 @@ class YouTubeApp(tkinter.Tk):
             pass
 
 
+class LoadingScreen(tkinter.Frame):
+    def __init__(self, parent, controller):
+        self.loadingScreenFrame = tkinter.Frame.__init__(self, parent)
+        # self.contentFrame = tkinter.Frame(self.loadingScreenFrame)
+        self.parent = parent
+        self.controller = controller
+
+        label = tkinter.Label(self.loadingScreenFrame, text="Loading, please wait...", font=('-weighted bold', 20))
+        label.grid(column=0, row=0, sticky="nwes")
+        self.grid()
+
+    def grid_hide(self):
+        print("hide")
+        self.grid_forget()
+
+    def grid_show(self):
+        print("show")
+        self.controller.showFrame(LoadingScreen)
+        # self.grid()
+        time.sleep(2)
+
+
 #################### Home Screen ####################
 class homePage(tkinter.Frame):
     def __init__(self, parent, controller):
@@ -67,7 +88,6 @@ class homePage(tkinter.Frame):
         self.controller = controller
         self.contentFrame = ScrollableFrame(self.frame)
         self.parent = parent
-        self.controller = controller
 
         row = 1
         for v in backEndMain.allVideosList:
@@ -124,7 +144,7 @@ class homePage(tkinter.Frame):
 
         optionsMenu.add_command(label="Pull Videos", command=lambda: self.pullVideosWithCheck())
 
-        optionsMenu.add_command(label="Reset To Default", command=lambda: [self.resetToDefaultWitchCheck()])
+        optionsMenu.add_command(label="Reset To Default", command=lambda: [self.resetToDefaultWithCheck()])
 
         menubar.add_cascade(label="Options", menu=optionsMenu)
         
@@ -147,10 +167,10 @@ class homePage(tkinter.Frame):
 
         menubar.add_cascade(label="Sort By", menu=sortMenu)
         
-        #Return the menubar
+        # Return the menubar
         return menubar
 
-    def resetToDefaultWitchCheck(self):
+    def resetToDefaultWithCheck(self):
         window = tkinter.Toplevel(self.parent)
         window.grab_set()
         window.resizable(width=False, height=False)
@@ -187,7 +207,8 @@ class homePage(tkinter.Frame):
 
             tkinter.Button(window, text="Submit", width=10,
                            command=lambda widget=userInput:
-                           [self.contentFrame.grid_forget(),
+                           [self.controller.CreateLoadingScreen(),
+                            self.contentFrame.grid_forget(),
                             backEndMain.lastPullDate.clear(),
                             backEndMain.lastPullDate.append(datetime.datetime(year=widget.get_date().year,
                                                                               month=widget.get_date().month,
@@ -195,7 +216,8 @@ class homePage(tkinter.Frame):
                                                             .strftime("%Y-%m-%dT%H:%M:%SZ")),
                             window.destroy(),
                             backEndMain.pullVideos(),
-                            self.__init__(self.parent, self.controller)]).grid(row=0, column=2, sticky="e")
+                            self.__init__(self.parent, self.controller),
+                            self.controller.CloseLoadingScreen()]).grid(row=0, column=2, sticky="e")
 
             window.grid()
 
@@ -210,12 +232,14 @@ class homePage(tkinter.Frame):
         return dateToday
 
     def grid_hide(self):
+        self.controller.loadingScreen.grid_show()
         self.grid_remove()
         self.contentFrame.grid_remove()
 
     def grid_show(self):
         self.grid()
         self.contentFrame.grid()
+        self.controller.loadingScreen.grid_hide()
 
 
 #################### Creator's Page ####################
@@ -225,7 +249,6 @@ class cPage(tkinter.Frame):
         self.controller = controller
         self.contentFrame = ScrollableFrame(self.frame)
         self.parent = parent
-        self.controller = controller
         
         row = 1
         for c in backEndMain.allCreatorsList:
@@ -276,13 +299,13 @@ class cPage(tkinter.Frame):
     def menubar(self, root):
         menubar = Menu(root)
         
-        #Return to home screen button
+        # Return to home screen button
         menubar.add_command(label="Home Screen", command=lambda: self.controller.showFrame(homePage))
         
-        #Save changes button
+        # Save changes button
         menubar.add_command(label="Save Changes", command=lambda: backEndMain.save())
     
-        #Sort options
+        # Sort options
         sortMenu = Menu(menubar, tearoff=0)
         sortMenu.add_command(label="Creator Name", command=lambda: [self.contentFrame.grid_forget(),
                                                                     backEndMain.sortCreatorByName(),
@@ -301,19 +324,23 @@ class cPage(tkinter.Frame):
 
         menubar.add_command(label="Add Creator", command=lambda: self.addCreatorScreen())
             
-        #Return the menubar
+        # Return the menubar
         return menubar
 
     def grid_hide(self):
+        self.controller.loadingScreen.grid_show()
         self.grid_remove()
         self.contentFrame.grid_remove()
 
     def grid_show(self):
         self.grid()
         self.contentFrame.grid()
+        self.controller.loadingScreen.grid_hide()
 
     def reinitialize(self):
+        self.controller.loadingScreen.grid_show()
         self.__init__(self.parent, self.controller)
+        self.controller.loadingScreen.grid_hide()
 
     def addCreatorScreen(self):
         window = tkinter.Toplevel(self.parent)
